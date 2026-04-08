@@ -1,0 +1,8 @@
+{
+  "permission": {
+    "external_directory": {
+      "~/.cargo/registry/**": "allow",
+      "~/.cargo/git/**": "allow"
+    }
+  }
+}
