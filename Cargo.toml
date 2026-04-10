@@ -1,6 +1,19 @@
 [package]
-name = "to_rename"
-version = "0.1.0"
-edition = "2024"
+name = "bevy_p2p_app"
+version = "0.0.1"
+edition = "2021"
+
+[lib]
+crate-type = ["lib", "cdylib"]
 
 [dependencies]
+bevy = "0.18.1"
+libp2p = { version = "0.56", features = [
+    "tcp", "mdns", "noise", "yamux", "gossipsub", "serde", "tokio"
+]}
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync"] }
+serde = { version = "1", features = ["derive"] }
+bincode = "1"
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+anyhow = "1"

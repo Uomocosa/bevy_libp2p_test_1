@@ -9,8 +9,9 @@
     "disable_ai": false,
     "agent": {
         "default_model": {
-            "provider": "opencode",
-            "model": "opencode",
+            "enable_thinking": true,
+            "provider": "ollama",
+            "model": "gemma4:latest",
         },
         "favorite_models": [],
         "play_sound_when_agent_done": true,
@@ -19,12 +20,10 @@
     "agent_servers": {
         "opencode": {
             "default_config_options": {
-                "mode": "plan"
+                "mode": "plan",
             },
             "favorite_config_option_values": {
-                "mode": [
-                    "plan"
-                ]
+                "mode": ["plan"],
             },
             "default_mode": "plan",
             "type": "registry",
