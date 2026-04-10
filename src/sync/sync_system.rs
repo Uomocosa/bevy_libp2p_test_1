@@ -1,12 +1,12 @@
 use bevy::prelude::*;
+use libp2p::gossipsub::IdentTopic;
 use libp2p::PeerId;
 use std::collections::HashMap;
 use tracing::debug;
 
 use crate::game::player::{Player, PlayerInput};
-use crate::p2p::protocol::GossipTopic;
-use crate::p2p::protocol::PlayerInputData as RemoteInputData;
-use crate::sync::messages::create_player_input_message;
+use crate::p2p::plugin::{get_game_topic, SwarmState};
+use crate::p2p::protocol::{NetworkMessage, PlayerInputData as RemoteInputData};
 use crate::sync::tick::Tick;
 
 #[derive(Resource)]
@@ -25,6 +25,7 @@ impl Default for NetworkState {
 }
 
 pub fn broadcast_input_system(
+    mut swarm_state: ResMut<SwarmState>,
     network: Res<NetworkState>,
     tick: Res<Tick>,
     local_player_query: Query<(&Player, &PlayerInput)>,
@@ -40,22 +41,34 @@ pub fn broadcast_input_system(
             continue;
         }
 
-        let topic = GossipTopic::new();
-        let message = create_player_input_message(current_tick, input.input.clone());
+        let topic = get_game_topic();
+        let message = NetworkMessage::PlayerInput {
+            tick: current_tick,
+            input: input.input.clone(),
+        };
+
+        swarm_state.swarm.publish(topic, message);
 
         debug!(
-            "Broadcast from {} for tick {}: {} bytes",
-            network.local_peer_id,
-            current_tick,
-            message.len()
+            "Broadcast from {} for tick {}: input={:?}",
+            network.local_peer_id, current_tick, input.input
         );
     }
 }
 
-#[derive(Resource, Default)]
+#[derive(Resource)]
 pub struct RemoteInputBuffer {
     inputs: HashMap<PeerId, Vec<(u64, RemoteInputData)>>,
     max_size: usize,
+}
+
+impl Default for RemoteInputBuffer {
+    fn default() -> Self {
+        Self {
+            inputs: HashMap::new(),
+            max_size: 256,
+        }
+    }
 }
 
 impl RemoteInputBuffer {

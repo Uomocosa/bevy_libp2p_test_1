@@ -9,9 +9,10 @@ crate-type = ["lib", "cdylib"]
 [dependencies]
 bevy = "0.18.1"
 libp2p = { version = "0.56", features = [
-    "tcp", "mdns", "noise", "yamux", "gossipsub", "serde", "tokio"
-]}
+    "tcp", "mdns", "noise", "yamux", "gossipsub", "serde", "tokio", "macros"
+] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync"] }
+futures = "0.3"
 serde = { version = "1", features = ["derive"] }
 bincode = "1"
 tracing = "0.1.44"

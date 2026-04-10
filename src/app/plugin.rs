@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use crate::game::input::player_input_system;
 use crate::game::physics::physics_system;
 use crate::game::sync_transform::sync_position_to_transform;
+use crate::p2p::P2PPlugin;
 use crate::sync::sync_system::{
     apply_remote_inputs_system, broadcast_input_system, NetworkState, RemoteInputBuffer,
 };
@@ -12,7 +13,8 @@ pub struct BevyP2PPlugin;
 
 impl Plugin for BevyP2PPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<Tick>()
+        app.add_plugins(P2PPlugin)
+            .init_resource::<Tick>()
             .init_resource::<NetworkState>()
             .init_resource::<RemoteInputBuffer>()
             .add_systems(

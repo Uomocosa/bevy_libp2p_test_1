@@ -8,7 +8,7 @@ See [OBJECTIVE.md](./OBJECTIVE.md) for project Phase 1/2 goals.
 
 - **Type:** Binary crate (Bevy game engine + libp2p P2P networking)
 - **Key deps:** Bevy 0.18.1, libp2p 0.56, tokio, serde
-- **Entry point:** `src/main.rs`
+- **Entry point:** `examples/boxes.rs` (run with `cargo run --example boxes`)
 
 ---
 
