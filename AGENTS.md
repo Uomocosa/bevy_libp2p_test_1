@@ -5,25 +5,31 @@ See [SYNTAX.md](./SYNTAX.md) for syntax rules (source of truth for code access p
 
 ---
 
-## Syntax Rules (Source of Truth)
+## Syntax Rules - MANDATORY
 
-**Module path defines file location:**
+**The rule: Structure → File location → File content are BIDIRECTIONALLY BOUND.**
+
 ```
-game::component::Position   → game/component/Position.rs
-game::component::Velocity   → game/component/Velocity.rs
-game::component::Player     → game/component/Player.rs
-game::system::input         → game/system/input.rs
-game::system::physics      → game/system/physics.rs
-game::system::sync         → game/system/sync.rs
+game::component::Position   → src/game/component/Position.rs
+game::component::Velocity → src/game/component/Velocity.rs
+game::system::input      → src/game/system/input.rs
+game::system::physics   → src/game/system/physics.rs
 ```
 
 **Filename case mirrors struct case:**
 - `Position` struct → `Position.rs` (uppercase struct, uppercase file)
 - `velocity` struct → `velocity.rs` (lowercase struct, lowercase file)
 
-**File name defines content:** The file `Position.rs` MUST contain a `Position` struct/enum. The file `input.rs` MUST contain an `input` function/system.
+**Before writing any code, you MUST:**
+1. Look at `src/game/mod.rs` to see what modules exist
+2. If creating a new struct `X`, create `src/game/component/X.rs`
+3. If creating new impl blocks for `X`, they go in `src/game/component/X.rs`, NOT separate files
+4. If creating a system, place in `src/game/system/X.rs`
 
-> **Rule:** Structure (syntax) → File location → File content. Each is bidirectionally bound.
+**If SYNTAX.md rules conflict with actual code:** The code must be refactored to match SYNTAX.md. Do NOT create files that violate these rules.
+
+> ✗ WRONG: `Position` struct in `src/game/player.rs`  
+> ✓ CORRECT: `src/game/component/Position.rs` containing `Position` struct
 
 ---
 
@@ -86,14 +92,6 @@ No authoritative servers - fully peer-to-peer.
 - Early returns to reduce nesting
 - Line length: 100 chars max
 - 4 spaces indentation
-- **Filename case mirrors struct case:**
-  - `Position` struct → `Position.rs` (uppercase struct, uppercase file)
-  - `Velocity` struct → `Velocity.rs` (uppercase struct, uppercase file)
-  - `velocity` struct → `velocity.rs` (lowercase struct, lowercase file)
-  - **File naming:** Structure (syntax) defines file names:
-    - `Position.rs` MUST contain a `Position` struct/enum
-    - `Velocity.rs` MUST contain a `Velocity` struct/enum
-    - `input.rs` MUST contain an `input` function/system
 - **Use `tracing!` macros (NOT `println!`):**
   ```rust
   tracing::debug!(target: "physics", vel_x = vel.x);
