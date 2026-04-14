@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 use crate::p2p::protocol::{NetworkMessage, PlayerInputData};
 
 pub type GameMessage = NetworkMessage;

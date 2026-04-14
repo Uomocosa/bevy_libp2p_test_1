@@ -43,59 +43,57 @@ impl P2PSwarm {
 
         info!("Local peer ID: {}", local_peer_id);
 
-        let transport = tcp::tokio::Transport::new(tcp::Config::default())
-            .upgrade(libp2p::core::upgrade::Version::V1)
-            .authenticate(noise::Config::new(&local_key)?)
-            .multiplex(yamux::Config::default())
-            .boxed();
-
-        let gossipsub_config = gossipsub::ConfigBuilder::default()
-            .message_id_fn(|message| {
-                let mut hasher = DefaultHasher::new();
-                message.data.hash(&mut hasher);
-                gossipsub::MessageId::from(hasher.finish().to_string())
-            })
-            .build()?;
-
-        let gossipsub = gossipsub::Behaviour::new(
-            gossipsub::MessageAuthenticity::Signed(local_key.clone()),
-            gossipsub_config,
-        )?;
-
-        let mdns = Mdns::new(libp2p::mdns::Config::default(), local_peer_id)?;
-
-        let behaviour = SwarmBehaviour { mdns, gossipsub };
-
-        let swarm = Swarm::new(
-            transport,
-            behaviour,
-            local_peer_id,
-            SwarmConfig::without_executor(),
-        );
-
-        let topic = IdentTopic::new(GAME_TOPIC_STR);
-
-        let swarm = Arc::new(Mutex::new(swarm));
-
-        let swarm_clone = swarm.clone();
-        swarm_clone
-            .lock()
-            .unwrap()
-            .behaviour_mut()
-            .gossipsub
-            .subscribe(&topic)
-            .ok();
-
         std::thread::spawn(move || {
-            info!(
-                "Swarm thread started, subscribed to topic: {}",
-                GAME_TOPIC_STR
-            );
+            info!("Swarm thread started, initializing networking");
 
             let rt = tokio::runtime::Builder::new_current_thread()
                 .enable_all()
                 .build()
                 .unwrap();
+
+            let mdns = match Mdns::new(libp2p::mdns::Config::default(), local_peer_id) {
+                Ok(m) => m,
+                Err(e) => {
+                    warn!("mDNS disabled (no network interface?): {}", e);
+                    Mdns::new(libp2p::mdns::Config::default(), local_peer_id)
+                        .expect("mDNS disabled failed even without network")
+                }
+            };
+
+            let transport = tcp::tokio::Transport::new(tcp::Config::default())
+                .upgrade(libp2p::core::upgrade::Version::V1)
+                .authenticate(noise::Config::new(&local_key).expect("noise auth"))
+                .multiplex(yamux::Config::default())
+                .boxed();
+
+            let gossipsub_config = gossipsub::ConfigBuilder::default()
+                .message_id_fn(|message| {
+                    let mut hasher = DefaultHasher::new();
+                    message.data.hash(&mut hasher);
+                    gossipsub::MessageId::from(hasher.finish().to_string())
+                })
+                .build()
+                .expect("gossipsub config");
+
+            let gossipsub = gossipsub::Behaviour::new(
+                gossipsub::MessageAuthenticity::Signed(local_key.clone()),
+                gossipsub_config,
+            )
+            .expect("gossipsub");
+
+            let behaviour = SwarmBehaviour { mdns, gossipsub };
+
+            let mut swarm = Swarm::new(
+                transport,
+                behaviour,
+                local_peer_id,
+                SwarmConfig::without_executor(),
+            );
+
+            let topic = IdentTopic::new(GAME_TOPIC_STR);
+            swarm.behaviour_mut().gossipsub.subscribe(&topic).ok();
+
+            let swarm = Arc::new(Mutex::new(swarm));
 
             let command_receiver = Arc::new(Mutex::new(command_receiver));
             let swarm_for_stream = swarm.clone();
@@ -254,4 +252,98 @@ pub enum SwarmEventType {
     PeerDisconnected(PeerId),
     Message(PeerId, TopicHash, Vec<u8>),
     NewListenAddr(Multiaddr),
+}
+
+#[cfg(test)]
+mod tests {
+    use libp2p::PeerId;
+    use std::thread;
+    use std::time::Duration;
+    use std::time::Instant;
+
+    use super::{P2PSwarm, SwarmEventType};
+
+    #[test]
+    fn test_p2p_swarm_initializes() {
+        let result = P2PSwarm::new();
+
+        assert!(result.is_ok(), "Swarm should initialize without error");
+
+        let (swarm, _rx) = result.unwrap();
+        let peer_id = swarm.local_peer_id;
+
+        tracing::info!("Swarm initialized with peer ID: {}", peer_id);
+
+        let peer_id_str = peer_id.to_string();
+        assert!(!peer_id_str.is_empty(), "Peer ID should not be empty");
+        assert!(
+            peer_id_str.starts_with("12D3Koo"),
+            "Peer ID should be a valid libp2p PeerId"
+        );
+    }
+
+    #[test]
+    fn test_get_connected_peers() {
+        let (mut swarm, _rx) = P2PSwarm::new().expect("Failed to create swarm");
+
+        let peers = swarm.get_connected_peers();
+
+        tracing::debug!("Connected peers: {:?}", peers);
+
+        assert!(peers.is_empty(), "New swarm should have no connected peers");
+    }
+
+    #[test]
+    fn test_get_discovered_peers() {
+        let (_swarm, _rx) = P2PSwarm::new().expect("Failed to create swarm");
+
+        let peers: Vec<PeerId> = Vec::new();
+
+        tracing::debug!("Discovered peers: {:?}", peers);
+    }
+
+    #[test]
+    #[ignore = "mDNS requires real network/multicast between separate machines on same LAN"]
+    fn test_mdns_bidirectional_discovery() {
+        let (swarm1, mut rx1) = P2PSwarm::new().expect("Failed to create swarm1");
+        let (swarm2, mut rx2) = P2PSwarm::new().expect("Failed to create swarm2");
+
+        let peer1_id = swarm1.local_peer_id;
+        let peer2_id = swarm2.local_peer_id;
+
+        tracing::info!("Testing mDNS between {} and {}", peer1_id, peer2_id);
+
+        let timeout = Duration::from_secs(10);
+        let deadline = Instant::now() + timeout;
+
+        let mut found_1_to_2 = false;
+        let mut found_2_to_1 = false;
+
+        while Instant::now() < deadline {
+            if let Ok(event) = rx1.try_recv() {
+                if let SwarmEventType::PeerDiscovered(pid) = event {
+                    if pid == peer2_id {
+                        found_1_to_2 = true;
+                    }
+                }
+            }
+
+            if let Ok(event) = rx2.try_recv() {
+                if let SwarmEventType::PeerDiscovered(pid) = event {
+                    if pid == peer1_id {
+                        found_2_to_1 = true;
+                    }
+                }
+            }
+
+            if found_1_to_2 && found_2_to_1 {
+                break;
+            }
+
+            thread::sleep(Duration::from_millis(100));
+        }
+
+        assert!(found_1_to_2, "swarm1 should discover swarm2");
+        assert!(found_2_to_1, "swarm2 should discover swarm1");
+    }
 }

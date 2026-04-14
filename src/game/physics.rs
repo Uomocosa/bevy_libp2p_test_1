@@ -6,6 +6,7 @@ use crate::p2p::protocol::PlayerInputData;
 
 const MOVE_SPEED: f32 = 200.0;
 const JUMP_VELOCITY: f32 = 350.0;
+const UP_SPEED: f32 = 150.0;
 const GRAVITY: f32 = 800.0;
 const GROUND_Y: f32 = -200.0;
 
@@ -27,7 +28,9 @@ pub fn physics_system(
             vel.x = 0.0;
         }
 
-        if input.input.jump && pos.y <= GROUND_Y + 1.0 {
+        if input.input.up {
+            vel.y = UP_SPEED;
+        } else if input.input.jump && pos.y <= GROUND_Y + 1.0 {
             vel.y = JUMP_VELOCITY;
         } else if pos.y > GROUND_Y {
             vel.y -= GRAVITY * dt;
@@ -61,7 +64,9 @@ pub fn apply_input_to_velocity(
         velocity.x = 0.0;
     }
 
-    if input.jump && position.y <= GROUND_Y + 1.0 {
+    if input.up {
+        velocity.y = UP_SPEED;
+    } else if input.jump && position.y <= GROUND_Y + 1.0 {
         velocity.y = JUMP_VELOCITY;
     }
 }

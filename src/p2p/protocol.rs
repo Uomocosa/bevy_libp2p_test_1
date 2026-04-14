@@ -41,15 +41,21 @@ pub enum NetworkMessage {
 pub struct PlayerInputData {
     pub left: bool,
     pub right: bool,
+    pub up: bool,
     pub jump: bool,
 }
 
 impl PlayerInputData {
-    pub fn from_bools(left: bool, right: bool, jump: bool) -> Self {
-        Self { left, right, jump }
+    pub fn from_bools(left: bool, right: bool, up: bool, jump: bool) -> Self {
+        Self {
+            left,
+            right,
+            up,
+            jump,
+        }
     }
 
     pub fn is_zero(&self) -> bool {
-        !self.left && !self.right && !self.jump
+        !self.left && !self.right && !self.up && !self.jump
     }
 }

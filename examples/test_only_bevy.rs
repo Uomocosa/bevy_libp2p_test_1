@@ -2,18 +2,20 @@ use bevy::prelude::*;
 use bevy_p2p_app::{app, game};
 
 fn main() {
-    // cargo run --example boxes
+    tracing::info!("Starting test_only_bevy - Basic Bevy P2P Test");
+
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
-                title: "Bevy P2P Platformer".into(),
-                resolution: (800u32, 600u32).into(),
+                title: "Test Only Bevy".into(),
+                resolution: (640u32, 480u32).into(),
                 ..default()
             }),
             ..default()
         }))
         .add_plugins(app::BevyP2PPlugin)
         .add_systems(Startup, setup_game)
+        .add_systems(Update, print_peer_info_system)
         .run();
 }
 
@@ -25,7 +27,7 @@ fn setup_game(mut commands: Commands) {
             peer_id: libp2p::PeerId::random(),
             is_local: true,
         },
-        game::player::Position::new(0.0, -200.0),
+        game::player::Position::new(0.0, 0.0),
         game::player::Velocity::zero(),
         game::player::PlayerInput::new(),
         game::player::InputBuffer::default(),
@@ -34,6 +36,16 @@ fn setup_game(mut commands: Commands) {
             custom_size: Some(Vec2::new(32.0, 32.0)),
             ..default()
         },
-        Transform::from_xyz(0.0, -200.0, 0.0),
+        Transform::from_xyz(0.0, 0.0, 0.0),
     ));
+
+    tracing::info!("Game setup complete - Player spawned");
+}
+
+fn print_peer_info_system(time: Res<Time>) {
+    if time.elapsed_secs() < 1.0 {
+        return;
+    }
+
+    tracing::debug!("test_only_bevy is running...");
 }

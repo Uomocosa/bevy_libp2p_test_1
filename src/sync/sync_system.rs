@@ -1,17 +1,17 @@
 use bevy::prelude::*;
-use libp2p::gossipsub::IdentTopic;
 use libp2p::PeerId;
 use std::collections::HashMap;
 use tracing::debug;
 
 use crate::game::player::{Player, PlayerInput};
-use crate::p2p::plugin::{get_game_topic, SwarmState};
+use crate::p2p::plugin::get_game_topic;
 use crate::p2p::protocol::{NetworkMessage, PlayerInputData as RemoteInputData};
 use crate::sync::tick::Tick;
 
 #[derive(Resource)]
 pub struct NetworkState {
     pub local_peer_id: PeerId,
+    pub discovered_peers: Vec<PeerId>,
     pub connected_peers: Vec<PeerId>,
 }
 
@@ -19,13 +19,14 @@ impl Default for NetworkState {
     fn default() -> Self {
         Self {
             local_peer_id: PeerId::random(),
+            discovered_peers: Vec::new(),
             connected_peers: Vec::new(),
         }
     }
 }
 
 pub fn broadcast_input_system(
-    mut swarm_state: ResMut<SwarmState>,
+    mut swarm_state: ResMut<crate::p2p::plugin::SwarmState>,
     network: Res<NetworkState>,
     tick: Res<Tick>,
     local_player_query: Query<(&Player, &PlayerInput)>,
@@ -91,7 +92,7 @@ impl RemoteInputBuffer {
 }
 
 pub fn apply_remote_inputs_system(
-    mut remote_buffer: ResMut<RemoteInputBuffer>,
+    remote_buffer: ResMut<RemoteInputBuffer>,
     tick: Res<Tick>,
     mut players: Query<(&Player, &mut PlayerInput)>,
 ) {
