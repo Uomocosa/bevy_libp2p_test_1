@@ -1,27 +1,27 @@
 # AGENTS.md
 
-See [OBJECTIVE.md](./OBJECTIVE.md) for project Phase 1/2 goals (source of truth for what to build).
+See [OBJECTIVE.md](./OBJECTIVE.md) for project Phase 1/2 goals.
+
+See [SYNTAX.md](./SYNTAX.md) for syntax reasoning and rules (source of truth for how code is accessed).
 
 ---
 
 ## Project Quick Facts
 
-- **Type:** Binary crate (Bevy game engine + libp2p P2P networking)
+- **Type:** Library crate (Bevy game engine + libp2p P2P networking)
 - **Key deps:** Bevy 0.18.1, libp2p 0.56, tokio, serde
-- **Entry point:** `examples/boxes.rs` (run with `cargo run --example boxes`)
+- **Entry point:** `examples/boxes.rs`
 
 ---
 
 ## Build, Lint, Test
 
 ```bash
-cargo build              # Build project
-cargo run                # Run game
-cargo run --example boxes  # Run main P2P example
-cargo clippy             # Lint
-cargo fmt                # Format
-cargo fmt -- --check     # Check without modifying
-cargo test --all-targets # Run ALL tests (lib + examples)
+cargo build
+cargo run --example boxes
+cargo clippy
+cargo fmt -- --check
+cargo test --all-targets
 ```
 
 ---
@@ -37,21 +37,38 @@ cargo test --all-targets # Run ALL tests (lib + examples)
 
 ---
 
-## Architectural Rules (Target)
+## Structure From Syntax
 
-**Goal: one function per file** for struct impl blocks. When adding new behavior to an existing struct, create a new file:
+The syntax rules in `SYNTAX.md` define how code is accessed. The structure must match:
 
-```
-ModuleName/
-├── mod.rs              # Module declarations only
-├── ModuleName.rs      # Struct definition + trait derives only
-├── fn_name_one.rs     # impl block for fn_name_one ONLY
-└── fn_name_two.rs     # impl block for fn_name_two ONLY
-```
+### File Organization Rules
 
-- DO NOT modify existing files when adding new functions
-- Create new `new_function_name.rs`
-- Add `pub mod new_function_name;` to mod.rs
+| Syntax Pattern | Structure |
+|----------------|------------|
+| `domain::ComponentName` | `domain/ComponentName.rs` (struct definition) |
+| `domain::function_name` | `domain/function_name.rs` (system/function) |
+| `domain::subdomain::Item` | `domain/subdomain/Item.rs` |
+
+### Naming Conventions
+
+| Content | Pattern | Example |
+|---------|---------|---------|
+| Component (struct) | `Name.rs` | `game/component/Position.rs` |
+| System (function) | `name.rs` | `game/input_system.rs` |
+| Impl block | `impl_name.rs` | `game/component/impl_position.rs` |
+| Submodule folder | `snake_case` | `game/component/`, `p2p/swarm/` |
+
+### One File = One Item
+
+- **ONE struct** per file (e.g., `Position.rs` has `Position` struct only)
+- **ONE function** per file (e.g., `input_system.rs` has `input_system` only)
+- **ONE impl block** per file (e.g., `impl_position.rs` has `impl Position` only)
+
+### Adding New Code
+
+1. Determine syntax path (e.g., `game::input_system`)
+2. Create corresponding file (`game/input_system.rs`)
+3. Add `pub mod filename;` to `game/mod.rs`
 
 ---
 
@@ -62,88 +79,27 @@ ModuleName/
 - Line length: 100 chars max
 - 4 spaces indentation
 
-### Testing
+---
 
-**Rule: No `tests/` folder.** Tests live either:
-- Inline in the module they test as `#[cfg(test)] mod tests { ... }`
-- In `examples/` as example programs with `#[cfg(test)]` modules
+## Testing
 
-**Rule: One function/class per test file.** The test file/module name matches what it tests:
-- `src/p2p/swarm.rs` → `mod tests { #[test] fn test_p2p_swarm_...() }`
-- `examples/headless_bevy.rs` → `#[cfg(test)] mod tests { #[test] fn test_headless_...() }`
+**No `tests/` folder.** Tests live in:
+- Same file as `#[cfg(test)] mod tests { ... }`
+- In `examples/` as integration tests
 
-**Rule: Use `assert!` for assertions:**
+**Use `assert!` for assertions:**
 ```rust
-// CORRECT: Proper assertion
 assert!(player.y > 0.0, "Player should be above ground: y={}", player.y);
-
-// WRONG: Print-based check (creates false positive)
-if player.y <= 0.0 {
-    tracing::error!("FAIL: Player should be above ground");
-}
 ```
 
-**Rule: Use `tracing!` macros for output:**
-- **Use** `tracing::debug!`, `tracing::info!`, `tracing::error!`
-- **Do NOT use** `println!`, `print!`, `eprintln!`, `eprint!`
-
-### Examples
-
-Examples go in `examples/`. Two types:
-- **Simple examples** - Demonstrations without tests
-- **Complex examples** - Integration tests that verify system behavior (contain `#[cfg(test)]` modules)
-
-Run all tests including examples:
-```bash
-cargo test --all-targets
+**Use `tracing!` macros** (NOT `println!`):
+```rust
+tracing::debug!(target: "physics", vel_x = vel.x);
 ```
-
-### Occasional Checks
-
-**Flaky test detection** - Run tests multiple times to catch nondeterminism:
-```bash
-for i in {1..5}; do cargo test --all-targets; done
-```
-
-**Single-threaded testing** - Run tests sequentially to catch race conditions:
-```bash
-cargo test --all-targets -- --test-threads=1
-```
-
-**Combined check** (for thorough validation):
-```bash
-for i in {1..5}; do cargo test --all-targets -- --test-threads=1; done
-```
-
-### Naming
-
-| Item | Example |
-|------|---------|
-| Modules | `snake_case` (my_module) |
-| Structs | `PascalCase` (MyStruct) |
-| Functions | `snake_case` (my_function) |
-| Constants | `SCREAMING_SNAKE_CASE` |
 
 ---
 
 ## Git Workflow
 
-**Commit messages:**
-```
-feat: add user authentication
-fix: handle null response in API client
-docs: update README
-refactor: extract validation logic
-test: add integration tests
-chore: upgrade dependencies
-```
-
+**Commit messages:** `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
 **Branch naming:** `feature/<desc>`, `fix/<desc>`, `docs/<desc>`
-
----
-
-## Before Committing
-
-```bash
-cargo fmt && cargo clippy && cargo test --all-targets
-```
