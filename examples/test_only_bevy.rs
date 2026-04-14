@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 use bevy_p2p_app::{app, game};
+use game::component::{InputBuffer, PlayerInput, Position, Velocity};
+use game::player::Player;
 
 fn main() {
     tracing::info!("Starting test_only_bevy - Basic Bevy P2P Test");
@@ -23,14 +25,14 @@ fn setup_game(mut commands: Commands) {
     commands.spawn(Camera2d::default());
 
     commands.spawn((
-        game::player::Player {
+        Player {
             peer_id: libp2p::PeerId::random(),
             is_local: true,
         },
-        game::player::Position::new(0.0, 0.0),
-        game::player::Velocity::zero(),
-        game::player::PlayerInput::new(),
-        game::player::InputBuffer::default(),
+        Position::new(0.0, 0.0),
+        Velocity::zero(),
+        PlayerInput::new(),
+        InputBuffer::default(),
         Sprite {
             color: Color::srgb(0.3, 0.5, 0.9),
             custom_size: Some(Vec2::new(32.0, 32.0)),

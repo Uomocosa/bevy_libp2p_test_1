@@ -25,14 +25,18 @@ impl Plugin for P2PPlugin {
                 local_peer_id,
                 event_receiver,
             })
+            .add_systems(FixedUpdate, crate::p2p::poll_network::poll_network_system)
             .add_systems(
                 FixedUpdate,
-                (
-                    crate::p2p::poll_network::poll_network_system,
-                    crate::p2p::log_peer_count::log_peer_count_system,
-                    crate::sync::broadcast_input::broadcast_input_system,
-                    crate::sync::apply_remote_inputs::apply_remote_inputs_system,
-                ),
+                crate::p2p::log_peer_count::log_peer_count_system,
+            )
+            .add_systems(
+                FixedUpdate,
+                crate::sync::broadcast_input::broadcast_input_system,
+            )
+            .add_systems(
+                FixedUpdate,
+                crate::sync::apply_remote_inputs::apply_remote_inputs_system,
             );
     }
 }

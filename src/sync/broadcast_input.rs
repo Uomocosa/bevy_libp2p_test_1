@@ -1,7 +1,8 @@
 use bevy::prelude::*;
 use tracing::debug;
 
-use crate::game::player::{Player, PlayerInput};
+use crate::game::component::PlayerInput;
+use crate::game::player::Player;
 use crate::p2p::get_game_topic::get_game_topic;
 use crate::p2p::plugin::SwarmState;
 use crate::p2p::protocol::NetworkMessage;

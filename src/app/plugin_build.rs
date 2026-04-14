@@ -17,17 +17,12 @@ impl Plugin for BevyP2PPlugin {
             .init_resource::<Tick>()
             .init_resource::<NetworkState>()
             .init_resource::<RemoteInputBuffer>()
-            .add_systems(
-                FixedUpdate,
-                (
-                    tick_system,
-                    player_input_system,
-                    physics_system,
-                    sync_position_to_transform,
-                    broadcast_input_system,
-                    apply_remote_inputs_system,
-                ),
-            );
+            .add_systems(FixedUpdate, tick_system)
+            .add_systems(FixedUpdate, player_input_system)
+            .add_systems(FixedUpdate, physics_system)
+            .add_systems(FixedUpdate, sync_position_to_transform)
+            .add_systems(FixedUpdate, broadcast_input_system)
+            .add_systems(FixedUpdate, apply_remote_inputs_system);
     }
 }
 

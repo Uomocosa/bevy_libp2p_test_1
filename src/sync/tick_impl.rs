@@ -1,6 +1,7 @@
 use crate::sync::tick::Tick;
 
 impl Tick {
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> u64 {
         let current = self.0;
         self.0 = self.0.wrapping_add(1);

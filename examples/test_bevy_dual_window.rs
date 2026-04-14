@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 use bevy_p2p_app::{app, game};
+use game::component::{InputBuffer, PlayerInput, Position, Velocity};
+use game::player::Player;
 
 #[derive(Component)]
 struct Player1Tag;
@@ -30,14 +32,14 @@ fn setup_players(mut commands: Commands) {
 
     commands.spawn((
         Player1Tag,
-        game::player::Player {
+        Player {
             peer_id: libp2p::PeerId::random(),
             is_local: true,
         },
-        game::player::Position::new(-100.0, 0.0),
-        game::player::Velocity::zero(),
-        game::player::PlayerInput::new(),
-        game::player::InputBuffer::default(),
+        Position::new(-100.0, 0.0),
+        Velocity::zero(),
+        PlayerInput::new(),
+        InputBuffer::default(),
         Sprite {
             color: Color::srgb(0.3, 0.5, 0.9),
             custom_size: Some(Vec2::new(32.0, 32.0)),
@@ -48,14 +50,14 @@ fn setup_players(mut commands: Commands) {
 
     commands.spawn((
         Player2Tag,
-        game::player::Player {
+        Player {
             peer_id: libp2p::PeerId::random(),
             is_local: false,
         },
-        game::player::Position::new(100.0, 0.0),
-        game::player::Velocity::zero(),
-        game::player::PlayerInput::new(),
-        game::player::InputBuffer::default(),
+        Position::new(100.0, 0.0),
+        Velocity::zero(),
+        PlayerInput::new(),
+        InputBuffer::default(),
         Sprite {
             color: Color::srgb(0.9, 0.3, 0.3),
             custom_size: Some(Vec2::new(32.0, 32.0)),
@@ -69,8 +71,8 @@ fn setup_players(mut commands: Commands) {
 
 fn player_movement_system(
     keys: Res<ButtonInput<KeyCode>>,
-    mut player1_query: Query<(&mut game::player::Velocity, &mut Transform), With<Player1Tag>>,
-    mut player2_query: Query<(&mut game::player::Velocity, &mut Transform), With<Player2Tag>>,
+    mut player1_query: Query<(&mut Velocity, &mut Transform), With<Player1Tag>>,
+    mut player2_query: Query<(&mut Velocity, &mut Transform), With<Player2Tag>>,
 ) {
     for (mut velocity, mut transform) in &mut player1_query {
         let mut input = Vec2::ZERO;

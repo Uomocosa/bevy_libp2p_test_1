@@ -101,10 +101,7 @@ impl P2PSwarm {
             loop {
                 let cmd = {
                     let mut receiver = command_receiver.lock().unwrap();
-                    match receiver.try_recv() {
-                        Ok(c) => Some(c),
-                        Err(_) => None,
-                    }
+                    receiver.try_recv().ok()
                 };
 
                 if let Some(cmd) = cmd {
@@ -133,12 +130,9 @@ impl P2PSwarm {
 
                 let event = {
                     let mut swarm_guard = swarm_for_stream.lock().unwrap();
-                    match rt.block_on(futures::future::poll_fn(|cx| {
+                    rt.block_on(futures::future::poll_fn(|cx| {
                         swarm_guard.poll_next_unpin(cx)
-                    })) {
-                        Some(e) => Some(e),
-                        None => None,
-                    }
+                    }))
                 };
 
                 if let Some(event) = event {
@@ -237,11 +231,7 @@ impl P2PSwarm {
         self.command_sender
             .try_send(SwarmCommand::GetPeers(tx))
             .ok();
-        if let Some(peers) = rx.blocking_recv() {
-            peers
-        } else {
-            Vec::new()
-        }
+        rx.blocking_recv().unwrap_or_default()
     }
 }
 

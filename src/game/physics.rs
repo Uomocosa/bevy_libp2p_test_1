@@ -1,7 +1,8 @@
 use bevy::prelude::*;
 use tracing;
 
-use crate::game::player::{PlayerInput, Position, Velocity};
+use crate::game::component::{PlayerInput, Position, Velocity};
+use crate::game::player::Player;
 use crate::p2p::protocol::PlayerInputData;
 
 const MOVE_SPEED: f32 = 200.0;
@@ -11,10 +12,7 @@ const GRAVITY: f32 = 800.0;
 const GROUND_Y: f32 = -200.0;
 
 pub fn physics_system(
-    mut query: Query<
-        (&mut Position, &mut Velocity, &PlayerInput),
-        With<crate::game::player::Player>,
-    >,
+    mut query: Query<(&mut Position, &mut Velocity, &PlayerInput), With<Player>>,
     time: Res<Time<Fixed>>,
 ) {
     let dt = time.delta_secs();

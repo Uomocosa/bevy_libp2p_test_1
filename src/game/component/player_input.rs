@@ -1,5 +1,10 @@
-use crate::game::player::PlayerInput;
 use crate::p2p::protocol::PlayerInputData;
+use bevy::prelude::*;
+
+#[derive(Component, Debug, Clone)]
+pub struct PlayerInput {
+    pub input: PlayerInputData,
+}
 
 impl PlayerInput {
     pub fn new() -> Self {

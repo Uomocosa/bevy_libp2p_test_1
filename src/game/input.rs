@@ -2,7 +2,7 @@ use bevy::input::ButtonInput;
 use bevy::prelude::*;
 use tracing;
 
-use crate::game::player::PlayerInput;
+use crate::game::component::PlayerInput;
 use crate::p2p::protocol::PlayerInputData;
 
 pub fn collect_input(button_input: &ButtonInput<KeyCode>) -> PlayerInputData {

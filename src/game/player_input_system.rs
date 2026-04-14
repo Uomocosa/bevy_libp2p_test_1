@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::game::collect_input::collect_input;
-use crate::game::player::PlayerInput;
+use crate::game::component::PlayerInput;
 
 pub fn player_input_system(
     mut query: Query<&mut PlayerInput>,

@@ -21,7 +21,7 @@ impl Default for RemoteInputBuffer {
 
 impl RemoteInputBuffer {
     pub fn push(&mut self, peer_id: PeerId, tick: u64, input: RemoteInputData) {
-        let peer_inputs = self.inputs.entry(peer_id).or_insert_with(Vec::new);
+        let peer_inputs = self.inputs.entry(peer_id).or_default();
         if peer_inputs.len() >= self.max_size {
             peer_inputs.remove(0);
         }

@@ -1,10 +1,7 @@
 pub mod collect_input;
+pub mod component;
 pub mod input;
-pub mod input_buffer;
 pub mod physics;
 pub mod player;
-pub mod player_input;
 pub mod player_input_system;
-pub mod position;
 pub mod sync_transform;
-pub mod velocity;
