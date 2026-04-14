@@ -1,3 +1,5 @@
+#![allow(non_snake_case)]
+
 pub mod app;
 pub mod game;
 pub mod p2p;
