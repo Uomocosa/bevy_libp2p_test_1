@@ -1,16 +1,38 @@
 # AGENTS.md
 
 See [OBJECTIVE.md](./OBJECTIVE.md) for project Phase 1/2 goals.
-
-See [SYNTAX.md](./SYNTAX.md) for syntax reasoning and rules (source of truth for how code is accessed).
+See [SYNTAX.md](./SYNTAX.md) for syntax rules (source of truth for code access patterns).
 
 ---
 
-## Project Quick Facts
+## Syntax Rules (Source of Truth)
 
-- **Type:** Library crate (Bevy game engine + libp2p P2P networking)
+**Module path defines file location:**
+```
+game::component::Position   → game/component/Position.rs
+game::component::Velocity   → game/component/Velocity.rs
+game::component::Player     → game/component/Player.rs
+game::system::input         → game/system/input.rs
+game::system::physics      → game/system/physics.rs
+game::system::sync         → game/system/sync.rs
+```
+
+**Filename case mirrors struct case:**
+- `Position` struct → `Position.rs` (uppercase struct, uppercase file)
+- `velocity` struct → `velocity.rs` (lowercase struct, lowercase file)
+
+**File name defines content:** The file `Position.rs` MUST contain a `Position` struct/enum. The file `input.rs` MUST contain an `input` function/system.
+
+> **Rule:** Structure (syntax) → File location → File content. Each is bidirectionally bound.
+
+---
+
+## Quick Facts
+
+- **Type:** Library crate (Bevy + libp2p P2P networking)
 - **Key deps:** Bevy 0.18.1, libp2p 0.56, tokio, serde
 - **Entry point:** `examples/boxes.rs`
+- **Build:** `cargo build && cargo run --example boxes`
 
 ---
 
@@ -26,6 +48,18 @@ cargo test --all-targets
 
 ---
 
+## Examples
+
+| Example | Purpose |
+|---------|---------|
+| `boxes.rs` | Main game demo (mDNS discovery) |
+| `test_only_mdns.rs` | mDNS discovery in isolation |
+| `test_only_bevy.rs` | Basic Bevy P2P test |
+| `test_bevy_dual_window.rs` | Dual player movement test |
+| `headless_run_only_bevy.rs` | Headless P2P verification |
+
+---
+
 ## Module Overview
 
 | Module | Purpose |
@@ -37,38 +71,12 @@ cargo test --all-targets
 
 ---
 
-## Structure From Syntax
+## Architecture Notes
 
-The syntax rules in `SYNTAX.md` define how code is accessed. The structure must match:
+**Phase 1 (current):** Desktop with mDNS for local peer discovery.
+**Phase 2:** Browser/WASM - mDNS won't work in browsers. Architecture must remain modular to swap discovery layers (mDNS → WebRTC signalling).
 
-### File Organization Rules
-
-| Syntax Pattern | Structure |
-|----------------|------------|
-| `domain::ComponentName` | `domain/ComponentName.rs` (struct definition) |
-| `domain::function_name` | `domain/function_name.rs` (system/function) |
-| `domain::subdomain::Item` | `domain/subdomain/Item.rs` |
-
-### Naming Conventions
-
-| Content | Pattern | Example |
-|---------|---------|---------|
-| Component (struct) | `Name.rs` | `game/component/Position.rs` |
-| System (function) | `name.rs` | `game/input_system.rs` |
-| Impl block | `impl_name.rs` | `game/component/impl_position.rs` |
-| Submodule folder | `snake_case` | `game/component/`, `p2p/swarm/` |
-
-### One File = One Item
-
-- **ONE struct** per file (e.g., `Position.rs` has `Position` struct only)
-- **ONE function** per file (e.g., `input_system.rs` has `input_system` only)
-- **ONE impl block** per file (e.g., `impl_position.rs` has `impl Position` only)
-
-### Adding New Code
-
-1. Determine syntax path (e.g., `game::input_system`)
-2. Create corresponding file (`game/input_system.rs`)
-3. Add `pub mod filename;` to `game/mod.rs`
+No authoritative servers - fully peer-to-peer.
 
 ---
 
@@ -78,6 +86,18 @@ The syntax rules in `SYNTAX.md` define how code is accessed. The structure must 
 - Early returns to reduce nesting
 - Line length: 100 chars max
 - 4 spaces indentation
+- **Filename case mirrors struct case:**
+  - `Position` struct → `Position.rs` (uppercase struct, uppercase file)
+  - `Velocity` struct → `Velocity.rs` (uppercase struct, uppercase file)
+  - `velocity` struct → `velocity.rs` (lowercase struct, lowercase file)
+  - **File naming:** Structure (syntax) defines file names:
+    - `Position.rs` MUST contain a `Position` struct/enum
+    - `Velocity.rs` MUST contain a `Velocity` struct/enum
+    - `input.rs` MUST contain an `input` function/system
+- **Use `tracing!` macros (NOT `println!`):**
+  ```rust
+  tracing::debug!(target: "physics", vel_x = vel.x);
+  ```
 
 ---
 
@@ -87,19 +107,14 @@ The syntax rules in `SYNTAX.md` define how code is accessed. The structure must 
 - Same file as `#[cfg(test)] mod tests { ... }`
 - In `examples/` as integration tests
 
-**Use `assert!` for assertions:**
+Use `assert!` for assertions:
 ```rust
 assert!(player.y > 0.0, "Player should be above ground: y={}", player.y);
-```
-
-**Use `tracing!` macros** (NOT `println!`):
-```rust
-tracing::debug!(target: "physics", vel_x = vel.x);
 ```
 
 ---
 
 ## Git Workflow
 
-**Commit messages:** `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
-**Branch naming:** `feature/<desc>`, `fix/<desc>`, `docs/<desc>`
+- **Commit messages:** `feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`
+- **Branch naming:** `feature/<desc>`, `fix/<desc>`, `docs/<desc>`
