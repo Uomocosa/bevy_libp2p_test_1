@@ -1,51 +1,44 @@
 [
-    // I run this directly after done the ssh login: (I didnt like creating a task for this)
-    // >>> RUN SETUP:
-    // cd $HOME/lele-py-bioinformatics; git fetch origin; git reset --hard origin/main; chmod +x setup.sh; ./setup.sh; source ~/.bashrc
-    // >>> THEN run one of the commands exposed by pixi.
-    // pixi
-    // pixi run -e cuda find_polymer_for_target_molecule "metformin"
-    // >>> FINALLY UPLOAD TO GIT:
-    // cd $HOME/lele-py-bioinformatics; chmod +x upload_to_git.sh; ./upload_to_git.sh
     {
         "label": "run",
-        "command": "pixi run pytest -rFP -q -s $ZED_RELATIVE_FILE -o \"addopts=\"",
-        "env": { "LOGURU_LEVEL": "DEBUG" },
+        "command": "if [[ \"$ZED_FILE\" == *\"/examples/\"* ]]; then cargo test --example \"$ZED_STEM\"; elif [[ \"$ZED_FILE\" == *\"/tests/\"* ]]; then cargo test --test \"$ZED_STEM\"; elif [[ \"$ZED_STEM\" == \"lib\" ]]; then cargo test --lib; elif [[ \"$ZED_STEM\" == \"main\" ]]; then cargo test --bins; else cargo test \"$ZED_STEM\"; fi",
         "use_new_terminal": false,
         "allow_concurrent_runs": false,
+        "tags": ["rust", "test"],
+        // "env": { "LOGURU_LEVEL": "DEBUG" },
         "reveal": "always",
         "hide": "never",
         "shell": "system",
         "show_summary": false,
-        "show_command": true,
+        "show_command": false,
     },
-    { // Substitute the runnables near "test_" functions
-        "label": "${ZED_FILENAME}::${ZED_SYMBOL:entire file}",
-        "command": "pixi run pytest -rFP -q -s $ZED_CUSTOM_PYTHON_TEST_TARGET -o \"addopts=\"",
-        "tags": ["python-pytest-method", "python-pytest-class"],
-    },
-    {
-        "label": "RUN_ALL_TESTS",
-        "command": "pixi run pytest --durations=10 .",
-        "env": { "LOGURU_LEVEL": "CRITICAL" },
-        "use_new_terminal": false,
-        "allow_concurrent_runs": false,
-        "reveal": "always",
-        "hide": "never",
-        "shell": "system",
-        "show_summary": false,
-        "show_command": true,
-    },
-    {
-        "label": "list_tests",
-        "command": "pixi run pytest --collect-only -q .",
-        "env": { "LOGURU_LEVEL": "CRITICAL" },
-        "use_new_terminal": false,
-        "allow_concurrent_runs": false,
-        "reveal": "always",
-        "hide": "never",
-        "shell": "system",
-        "show_summary": false,
-        "show_command": true,
-    },
+    // { // Substitute the runnables near "test_" functions
+    //     "label": "${ZED_FILENAME}::${ZED_SYMBOL:entire file}",
+    //     "command": "pixi run pytest -rFP -q -s $ZED_CUSTOM_PYTHON_TEST_TARGET -o \"addopts=\"",
+    //     "tags": ["python-pytest-method", "python-pytest-class"],
+    // },
+    // {
+    //     "label": "RUN_ALL_TESTS",
+    //     "command": "pixi run pytest --durations=10 .",
+    //     "env": { "LOGURU_LEVEL": "CRITICAL" },
+    //     "use_new_terminal": false,
+    //     "allow_concurrent_runs": false,
+    //     "reveal": "always",
+    //     "hide": "never",
+    //     "shell": "system",
+    //     "show_summary": false,
+    //     "show_command": true,
+    // },
+    // {
+    //     "label": "list_tests",
+    //     "command": "pixi run pytest --collect-only -q .",
+    //     "env": { "LOGURU_LEVEL": "CRITICAL" },
+    //     "use_new_terminal": false,
+    //     "allow_concurrent_runs": false,
+    //     "reveal": "always",
+    //     "hide": "never",
+    //     "shell": "system",
+    //     "show_summary": false,
+    //     "show_command": true,
+    // },
 ]
