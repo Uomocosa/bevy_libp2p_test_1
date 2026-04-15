@@ -12,52 +12,77 @@ Before taking any action, you must read:
 **Before writing or modifying any code, you MUST:**
 1. Read `SYNTAX.md` to understand how this specific project maps structs/concepts to file names.
 2. Look at `src/` to see the existing module hierarchy. Do not invent root modules.
-3. If `SYNTAX.md` rules conflict with actual code, the code must be refactored to match `SYNTAX.md`. Do NOT create files that violate the project's structural rules.
+3. If `SYNTAX.md` rules conflict with actual code, the code must be refactored to match `SYNTAX.md`.
+
+## Atomic File Structure (CRITICAL)
+
+To maintain a clean, navigable codebase, we follow a strict **"One Logic Unit Per File"** policy:
+
+### 1. Function Files
+- If a file defines a function, it must contain **exactly one** primary public function.
+- The filename must match the function name (e.g., `calculate_velocity.rs` contains `pub fn calculate_velocity`).
+- Small, private helper functions are permitted only if they are used exclusively by the primary function and do not warrant their own file.
+
+### 2. Struct Files & Decomposition
+- Small structs and their `impl` blocks live in a single file named after the struct (e.g., `Position.rs`).
+- **Large Impl Decomposition:** If an `impl` block becomes complex or contains multiple methods, you MUST:
+    1. Create a subfolder with the same name as the Struct.
+    2. Create individual files for each method inside that subfolder.
+    3. The main Struct file's `impl` block will then act as a "router," calling these decomposed functions.
+- *Example:* `Player` struct in `Player.rs` might have a directory `Player/` containing `jump.rs` and `move.rs`.
 
 ## Universal Rust Code Style
 
 - **Clarity over cleverness:** Write readable, maintainable code.
-- **Early returns:** Use early returns (`?` operator or explicit `return`) to reduce nesting and rightward drift.
+- **Early returns:** Use `?` or `return` to reduce nesting.
 - **Indentation:** 4 spaces.
-- **Logging:** Use `tracing!` macros (NOT `println!`). 
+- **Logging:** Use `tracing!` macros.
   ```rust
   tracing::debug!(target: "module_name", var_name = var.value);
   ```
 
-## Basic Syntax Rules
+## Filename & Case Rules
 
-- **Filename is THE EXACT same as the struct/function/enum/... in it:**
-   - `StructNameExample` struct → `StructNameExample.rs` file
-   - `SimpleEnum` enum → `SimpleEnum.rs` file
-   - `poll_network_system` function → `poll_network_system.rs` file
+- **Filename is THE EXACT same as the primary item:**
+   - `StructName` → `StructName.rs`
+   - `simple_function` → `simple_function.rs`
+- **STRICT CASE PRESERVATION:** Do NOT downcase filenames. If the struct is `PlayerInput`, the file is `PlayerInput.rs`. If the function is `apply_physics`, the file is `apply_physics.rs`.
+- Assume `#![allow(non_snake_case)]` is handled at the crate level.
 
-- **STRICT CASE PRESERVATION (CRITICAL):** - Standard Rust module naming (`snake_case` for files) is **STRICTLY FORBIDDEN** if the primary struct/enum is `PascalCase`.
-   - You MUST NOT downcase filenames. If you create a struct named `MyStruct`, you must output `MyStruct.rs`. Do NOT output `my_struct.rs`.
-   - Assume `#![allow(non_snake_case)]` is handled at the crate level; do not attempt to format filenames to satisfy standard Rust compiler warnings.
+## Universal Testing Philosophy: Mandatory `test_usage`
 
-## Universal Testing Philosophy
+Every logic file (Function or Struct) MUST contain a demonstration test.
+- **The `test_usage` rule:** At the bottom of every file, include a `#[cfg(test)]` module with a test named `test_usage`.
+- This test must act as a "living example," showing how to initialize the struct or call the function with realistic data.
 
-**No `tests/` folder.** Tests live strictly in:
-- The same file as the code they test: `#[cfg(test)] mod tests { ... }`
-- Integration tests go in the `examples/` directory.
-
-Use `assert!` with descriptive messages for assertions:
+**Example for a function file:**
 ```rust
-assert!(player.y > 0.0, "Player should be above ground: y={}", player.y);
+pub fn add_velocity(pos: f32, vel: f32) -> f32 {
+    pos + vel
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_usage() {
+        let result = add_velocity(10.0, 2.0);
+        assert_eq!(result, 12.0, "Velocity addition failed");
+    }
+}
 ```
 
 ## Standard Build & Verification Routine
 
-**No unit tests exist.** Run examples to verify the app works:
+Verify changes with:
 ```bash
 cargo build --all-targets
 cargo clippy -- -D warnings
 cargo fmt -- --check
 cargo test --all-targets
 ```
-# Check OBJECTIVE.md or the examples/ directory for the specific run commands for this project.
 
 ## Git Workflow
-
-- **Commit messages:** Must be semantic (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`).
-- **Branch naming:** `feature/<desc>`, `fix/<desc>`, `docs/<desc>`.
+- **Commit messages:** Semantic (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`).
+- **Branch naming:** `feature/<desc>`, `fix/<desc>`.
