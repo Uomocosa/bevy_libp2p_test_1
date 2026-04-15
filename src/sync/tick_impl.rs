@@ -16,3 +16,21 @@ impl Tick {
         self.0 = tick;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_usage() {
+        let mut tick = Tick::default();
+        assert_eq!(tick.current(), 0, "Initial tick should be 0");
+
+        let prev = tick.next();
+        assert_eq!(prev, 0, "next() should return previous value");
+        assert_eq!(tick.current(), 1, "Tick should increment after next()");
+
+        tick.set(100);
+        assert_eq!(tick.current(), 100, "set should update tick value");
+    }
+}

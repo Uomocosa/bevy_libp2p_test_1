@@ -15,7 +15,7 @@ impl Plugin for BevyP2PPlugin {
             .init_resource::<NetworkState>()
             .init_resource::<RemoteInputBuffer>()
             .add_systems(FixedUpdate, tick)
-            .add_systems(FixedUpdate, game::system::input::collect)
+            .add_systems(FixedUpdate, game::system::collect::collect)
             .add_systems(FixedUpdate, game::system::character_controller)
             .add_systems(FixedUpdate, game::system::sync_position)
             .add_systems(FixedUpdate, sync::broadcast)
