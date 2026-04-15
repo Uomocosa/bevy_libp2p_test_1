@@ -4,6 +4,7 @@ use tracing::info;
 use crate::p2p::plugin::P2PPlugin;
 use crate::p2p::plugin::SwarmState;
 use crate::p2p::swarm::P2PSwarm;
+use crate::sync;
 use crate::sync::network_state::NetworkState;
 
 impl Plugin for P2PPlugin {
@@ -25,18 +26,9 @@ impl Plugin for P2PPlugin {
                 local_peer_id,
                 event_receiver,
             })
-            .add_systems(FixedUpdate, crate::p2p::poll_network::poll_network_system)
-            .add_systems(
-                FixedUpdate,
-                crate::p2p::log_peer_count::log_peer_count_system,
-            )
-            .add_systems(
-                FixedUpdate,
-                crate::sync::broadcast_input::broadcast_input_system,
-            )
-            .add_systems(
-                FixedUpdate,
-                crate::sync::apply_remote_inputs::apply_remote_inputs_system,
-            );
+            .add_systems(FixedUpdate, crate::p2p::poll_network::poll_network)
+            .add_systems(FixedUpdate, crate::p2p::log_peer_count::log_peer_count)
+            .add_systems(FixedUpdate, sync::broadcast)
+            .add_systems(FixedUpdate, sync::apply_remote_inputs);
     }
 }

@@ -50,9 +50,10 @@ assert!(player.y > 0.0, "Player should be above ground: y={}", player.y);
 
 **No unit tests exist.** Run examples to verify the app works:
 ```bash
-cargo build
+cargo build --all-targets
 cargo clippy -- -D warnings
 cargo fmt -- --check
+cargo test --all-targets
 ```
 # Check OBJECTIVE.md or the examples/ directory for the specific run commands for this project.
 

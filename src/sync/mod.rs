@@ -7,7 +7,8 @@ pub mod sync_system;
 pub mod tick;
 pub mod tick_impl;
 
+pub use apply_remote_inputs::apply_remote_inputs;
+pub use broadcast_input::broadcast;
 pub use network_state::NetworkState;
 pub use remote_input_buffer::RemoteInputBuffer;
-pub use sync_system::{apply_remote_inputs_system, broadcast_input_system};
 pub use tick::Tick;

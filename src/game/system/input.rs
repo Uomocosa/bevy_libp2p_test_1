@@ -16,10 +16,7 @@ pub fn collect_input(button_input: &ButtonInput<KeyCode>) -> PlayerInputData {
     PlayerInputData::from_bools(left, right, up, jump)
 }
 
-pub fn player_input_system(
-    mut query: Query<&mut PlayerInput>,
-    button_input: Res<ButtonInput<KeyCode>>,
-) {
+pub fn collect(mut query: Query<&mut PlayerInput>, button_input: Res<ButtonInput<KeyCode>>) {
     for mut player_input in &mut query {
         let input = collect_input(&button_input);
         player_input.set(input);

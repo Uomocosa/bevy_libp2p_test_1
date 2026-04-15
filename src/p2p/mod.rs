@@ -3,7 +3,6 @@ pub mod handle_incoming_message;
 pub mod log_peer_count;
 pub mod plugin;
 pub mod plugin_build;
-#[path = "poll_network_system.rs"]
 pub mod poll_network;
 pub mod protocol;
 pub mod swarm;

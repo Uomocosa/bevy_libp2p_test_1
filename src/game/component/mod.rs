@@ -1,4 +1,4 @@
-#[path = "input_buffer.rs"]
+#[path = "InputBuffer.rs"]
 pub mod input_buffer;
 #[path = "Player.rs"]
 pub mod player;

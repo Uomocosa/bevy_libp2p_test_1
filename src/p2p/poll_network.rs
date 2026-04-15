@@ -6,7 +6,7 @@ use crate::p2p::swarm::SwarmEventType;
 use crate::sync::network_state::NetworkState;
 use crate::sync::remote_input_buffer::RemoteInputBuffer;
 
-pub fn poll_network_system(
+pub fn poll_network(
     mut swarm_state: ResMut<SwarmState>,
     mut remote_buffer: ResMut<RemoteInputBuffer>,
     mut network_state: ResMut<NetworkState>,

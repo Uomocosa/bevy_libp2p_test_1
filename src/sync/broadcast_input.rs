@@ -9,7 +9,7 @@ use crate::p2p::protocol::NetworkMessage;
 use crate::sync::network_state::NetworkState;
 use crate::sync::tick::Tick;
 
-pub fn broadcast_input_system(
+pub fn broadcast(
     mut swarm_state: ResMut<SwarmState>,
     network: Res<NetworkState>,
     tick: Res<Tick>,

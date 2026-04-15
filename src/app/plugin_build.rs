@@ -1,12 +1,9 @@
 use bevy::prelude::*;
 
 use crate::app::plugin::BevyP2PPlugin;
-use crate::game::system::physics_system;
-use crate::game::system::player_input_system;
-use crate::game::system::sync_position_to_transform;
+use crate::game;
 use crate::p2p::plugin::P2PPlugin;
-use crate::sync::apply_remote_inputs::apply_remote_inputs_system;
-use crate::sync::broadcast_input::broadcast_input_system;
+use crate::sync;
 use crate::sync::network_state::NetworkState;
 use crate::sync::remote_input_buffer::RemoteInputBuffer;
 use crate::sync::tick::Tick;
@@ -17,15 +14,15 @@ impl Plugin for BevyP2PPlugin {
             .init_resource::<Tick>()
             .init_resource::<NetworkState>()
             .init_resource::<RemoteInputBuffer>()
-            .add_systems(FixedUpdate, tick_system)
-            .add_systems(FixedUpdate, player_input_system)
-            .add_systems(FixedUpdate, physics_system)
-            .add_systems(FixedUpdate, sync_position_to_transform)
-            .add_systems(FixedUpdate, broadcast_input_system)
-            .add_systems(FixedUpdate, apply_remote_inputs_system);
+            .add_systems(FixedUpdate, tick)
+            .add_systems(FixedUpdate, game::system::input::collect)
+            .add_systems(FixedUpdate, game::system::character_controller)
+            .add_systems(FixedUpdate, game::system::sync_position)
+            .add_systems(FixedUpdate, sync::broadcast)
+            .add_systems(FixedUpdate, sync::apply_remote_inputs);
     }
 }
 
-fn tick_system(mut tick: ResMut<Tick>) {
+fn tick(mut tick: ResMut<Tick>) {
     tick.next();
 }

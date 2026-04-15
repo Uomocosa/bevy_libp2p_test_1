@@ -10,7 +10,7 @@ const UP_SPEED: f32 = 150.0;
 const GRAVITY: f32 = 800.0;
 const GROUND_Y: f32 = -200.0;
 
-pub fn physics_system(
+pub fn character_controller(
     mut query: Query<(&mut Position, &mut Velocity, &PlayerInput), With<Player>>,
     time: Res<Time<Fixed>>,
 ) {
@@ -44,7 +44,7 @@ pub fn physics_system(
             vel.y = 0.0;
         }
 
-        tracing::trace!(target: "physics", vel_x = vel.x, vel_y = vel.y, pos_x = pos.x, pos_y = pos.y);
+        tracing::trace!(target: "character_controller", vel_x = vel.x, vel_y = vel.y, pos_x = pos.x, pos_y = pos.y);
     }
 }
 
