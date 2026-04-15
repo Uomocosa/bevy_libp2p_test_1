@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
+use crate::game::component::Player;
 use crate::game::component::PlayerInput;
-use crate::game::player::Player;
 use crate::sync::remote_input_buffer::RemoteInputBuffer;
 use crate::sync::tick::Tick;
 

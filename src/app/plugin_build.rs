@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 
 use crate::app::plugin::BevyP2PPlugin;
-use crate::game::physics::physics_system;
-use crate::game::sync_transform::sync_position_to_transform;
+use crate::game::system::physics_system;
 use crate::game::system::player_input_system;
+use crate::game::system::sync_position_to_transform;
 use crate::p2p::plugin::P2PPlugin;
 use crate::sync::apply_remote_inputs::apply_remote_inputs_system;
 use crate::sync::broadcast_input::broadcast_input_system;

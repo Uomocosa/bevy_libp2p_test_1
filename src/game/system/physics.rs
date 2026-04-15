@@ -1,8 +1,7 @@
 use bevy::prelude::*;
 use tracing;
 
-use crate::game::component::{PlayerInput, Position, Velocity};
-use crate::game::player::Player;
+use crate::game::component::{Player, PlayerInput, Position, Velocity};
 use crate::p2p::protocol::PlayerInputData;
 
 const MOVE_SPEED: f32 = 200.0;

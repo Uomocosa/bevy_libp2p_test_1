@@ -1,5 +1,7 @@
 #[path = "input_buffer.rs"]
 pub mod input_buffer;
+#[path = "Player.rs"]
+pub mod player;
 #[path = "PlayerInput.rs"]
 pub mod player_input;
 #[path = "Position.rs"]
@@ -8,6 +10,7 @@ pub mod position;
 pub mod velocity;
 
 pub use input_buffer::InputBuffer;
+pub use player::Player;
 pub use player_input::PlayerInput;
 pub use position::Position;
 pub use velocity::Velocity;
