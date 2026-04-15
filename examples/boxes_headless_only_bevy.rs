@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 use bevy::time::TimeUpdateStrategy;
 
-use bevy_p2p_app::game::component::Player;
-use bevy_p2p_app::game::component::{InputBuffer, PlayerInput, Position, Velocity};
+use bevy_p2p_app::boxes::component::Player;
+use bevy_p2p_app::boxes::component::{InputBuffer, PlayerInput, Position, Velocity};
 use bevy_p2p_app::p2p::protocol::PlayerInputData;
 
 const MOVE_SPEED: f32 = 200.0;

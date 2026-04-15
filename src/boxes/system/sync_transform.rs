@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use tracing;
 
-use crate::game::component::Position;
+use crate::boxes::component::Position;
 
 pub fn sync_position(mut query: Query<(&Position, &mut Transform)>) {
     for (pos, mut transform) in &mut query {

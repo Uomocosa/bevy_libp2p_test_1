@@ -1,7 +1,7 @@
 use bevy::prelude::*;
-use bevy_p2p_app::{app, game};
-use game::component::Player;
-use game::component::{InputBuffer, PlayerInput, Position, Velocity};
+use bevy_p2p_app::{app, boxes};
+use boxes::component::Player;
+use boxes::component::{InputBuffer, PlayerInput, Position, Velocity};
 
 fn main() {
     tracing::info!("Starting test_only_bevy - Basic Bevy P2P Test");
