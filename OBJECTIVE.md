@@ -4,10 +4,32 @@
 You are an expert Rust game networking engineer. Your task is to build a zero-infrastructure, fully decentralized P2P library for the `bevy` engine using `rust-libp2p`.
 
 ## Project Phases & Goals
+
 **Phase 1: Native Desktop (Current Focus)**
 1. Implement automatic mDNS discovery to find local peers.
 2. Implement manual connection dialing via Multiaddrs.
-3. Build a simple PoC platformer game (Left, Right, Jump) in Bevy to test state synchronization.
+3. Build two example games to test multiplayer groundwork:
+   - **Boxes**: Platformer (Left, Right, Jump). Each player controls their own box.
+     - On PlayerJoin: Spawn a new box for the joining player
+     - On PlayerLeave: Despawn the disconnected player's box
+   - **Clicker**: Click game. Each player has their own button with label "You".
+     - On PlayerJoin: Spawn a new button for the joining player (label "Opponent")
+     - On PlayerLeave: Despawn the disconnected player's button
+     - Self-click: +1 to your score. Opponent-click: -1 to their score.
+     - Labels: "You: N" (your score), "Opponent: N" (opponent score)
+4. Create multiplayer groundwork: P2PPlugin events and handler system for games.
+5. Testing: Simulate discovered/joined players without real P2P (FakeNetwork for this phase only).
+
+**Phase 1.5: Multiplayer Plugin Framework**
+- Build configurable P2PPlugin with builder pattern: `P2PPlugin::new(config)`, `P2PPlugin::coop()`, `P2PPlugin::pvp()`, etc.
+- Events games receive via handler system:
+  - `on_discovered_player` - New peer found via discovery
+  - `on_join_request` - Peer requests to join (return Accept/Reject)
+  - `on_player_join` - Peer connected, spawn their entity
+  - `on_player_leave` - Peer disconnected, cleanup
+  - `on_network_message` - Data received from peer
+- Configurable: discovery (mDNS, manual dial), message serialization, heartbeat interval
+- Testing: FakeNetwork resource to simulate discovered/joined players without real P2P connections (In the next phases we will also add real network tests.)
 
 **Phase 2: Browser (WebAssembly)**
 *Constraint Awareness:* Browsers cannot use mDNS. This phase will require WebRTC/WebTransport and a temporary signaling server for the initial handshake. Keep Phase 1's architecture modular enough to swap out the mDNS discovery layer for a WebRTC layer later.
@@ -15,3 +37,5 @@ You are an expert Rust game networking engineer. Your task is to build a zero-in
 ## Execution Rules
 - Default to the simplest possible implementation that satisfies the requirement.
 - Do not introduce authoritative servers; the architecture must remain peer-to-peer.
+- Games implement their own multiplayer logic via handler system; P2PPlugin handles discovery, connection, and message routing.
+- Sensible defaults (coop, pvp, mmo, lan_coop, lan_pvp) as starting points that devs can override.

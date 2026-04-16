@@ -7,6 +7,10 @@ impl ClickCounter {
     pub fn increment(&mut self) {
         self.0 += 1;
     }
+
+    pub fn decrement(&mut self) {
+        self.0 = self.0.saturating_sub(1);
+    }
 }
 
 #[cfg(test)]

@@ -31,6 +31,9 @@ impl From<GossipTopic> for IdentTopic {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum NetworkMessage {
     PlayerInput { tick: u64, input: PlayerInputData },
+    JoinRequest { peer_id: String },
+    Accept { peer_id: String },
+    Reject { peer_id: String },
     PlayerJoin { peer_id: String },
     PlayerLeave { peer_id: String },
     Ping,
