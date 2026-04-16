@@ -80,7 +80,7 @@ Verify changes with:
 cargo build --all-targets
 cargo clippy -- -D warnings
 cargo fmt -- --check
-cargo test --all-targets
+cargo nextest run --all-targets
 ```
 
 ## Git Workflow
