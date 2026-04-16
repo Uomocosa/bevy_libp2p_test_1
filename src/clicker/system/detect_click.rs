@@ -23,7 +23,20 @@ mod tests {
 
     #[test]
     fn test_usage() {
-        let counter = ClickCounter(5);
-        assert_eq!(counter.0, 5);
+        let mut world = World::new();
+        world.spawn(ClickCounter(0));
+
+        let mut mouse_input = ButtonInput::<MouseButton>::default();
+        mouse_input.press(MouseButton::Left);
+        world.insert_resource(mouse_input);
+
+        let mut schedule = Schedule::default();
+        schedule.add_systems(detect_click);
+        schedule.run(&mut world);
+
+        let mut query = world.query::<&ClickCounter>();
+        let counters: Vec<_> = query.iter(&world).collect();
+        assert!(!counters.is_empty());
+        assert_eq!(counters[0].0, 1);
     }
 }

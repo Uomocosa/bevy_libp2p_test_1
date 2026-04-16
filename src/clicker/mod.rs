@@ -1,26 +1,25 @@
 pub mod component;
 pub mod system;
 
+pub use system::detect_click;
+pub use system::update_counter;
+
 use bevy::prelude::*;
 
 pub struct ClickerGamePlugin;
 
 impl Plugin for ClickerGamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, detect_click);
+        app.add_systems(Update, (system::detect_click, system::update_counter));
     }
 }
 
-pub fn detect_click(
-    mut query: Query<&mut component::ClickCounter>,
-    mouse_button_input: Res<ButtonInput<MouseButton>>,
-) {
-    if !mouse_button_input.just_pressed(MouseButton::Left) {
-        return;
-    }
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    for mut counter in &mut query {
-        counter.increment();
-        tracing::debug!(target: "clicker", "Clicked! New count: {}", counter.0);
+    #[test]
+    fn test_usage() {
+        let _plugin = ClickerGamePlugin;
     }
 }

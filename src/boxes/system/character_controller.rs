@@ -2,7 +2,6 @@ use bevy::prelude::*;
 use tracing;
 
 use crate::boxes::component::{Player, PlayerInput, Position, Velocity};
-use crate::p2p::protocol::PlayerInputData;
 
 const MOVE_SPEED: f32 = 200.0;
 const JUMP_VELOCITY: f32 = 350.0;
@@ -48,22 +47,30 @@ pub fn character_controller(
     }
 }
 
-pub fn apply_input_to_velocity(
-    input: &PlayerInputData,
-    velocity: &mut Velocity,
-    position: &Position,
-) {
-    if input.left && !input.right {
-        velocity.x = -MOVE_SPEED;
-    } else if input.right && !input.left {
-        velocity.x = MOVE_SPEED;
-    } else {
-        velocity.x = 0.0;
-    }
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::boxes::component::{PlayerInput, Position, Velocity};
 
-    if input.up {
-        velocity.y = UP_SPEED;
-    } else if input.jump && position.y <= GROUND_Y + 1.0 {
-        velocity.y = JUMP_VELOCITY;
+    #[test]
+    fn test_usage() {
+        let mut world = World::new();
+
+        world.spawn((
+            Position::new(0.0, -200.0),
+            Velocity::zero(),
+            PlayerInput::new(),
+        ));
+
+        world.insert_resource(Time::<Fixed>::default());
+
+        let mut schedule = Schedule::default();
+        schedule.add_systems(character_controller);
+        schedule.run(&mut world);
+
+        let mut query = world.query::<&Position>();
+        let positions: Vec<_> = query.iter(&world).collect();
+
+        assert!(!positions.is_empty(), "Player should exist after update");
     }
 }

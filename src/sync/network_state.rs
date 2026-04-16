@@ -17,3 +17,15 @@ impl Default for NetworkState {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_usage() {
+        let state = NetworkState::default();
+        assert!(state.discovered_peers.is_empty());
+        assert!(state.connected_peers.is_empty());
+    }
+}

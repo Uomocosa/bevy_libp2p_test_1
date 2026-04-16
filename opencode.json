@@ -10,7 +10,12 @@
             "git *": "allow",
             "git commit *": "deny",
             "git push *": "deny",
-            "grep *": "allow"
+            "grep *": "allow",
+            "cargo build*": "allow",
+            "cargo clippy*": "allow",
+            "cargo fmt*": "allow",
+            "cargo test *": "allow",
+            "cargo nextest run*": "allow"
         },
         "read": {
             "*": "allow",

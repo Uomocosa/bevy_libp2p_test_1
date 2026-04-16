@@ -37,3 +37,21 @@ impl RemoteInputBuffer {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_usage() {
+        let mut buffer = RemoteInputBuffer::default();
+        let peer_id = PeerId::random();
+        let input = RemoteInputData::from_bools(true, false, false, false);
+
+        buffer.push(peer_id, 1, input.clone());
+        let retrieved = buffer.get(&peer_id, 1);
+
+        assert!(retrieved.is_some(), "Should retrieve pushed input");
+        assert!(retrieved.unwrap().left, "Left should be true");
+    }
+}

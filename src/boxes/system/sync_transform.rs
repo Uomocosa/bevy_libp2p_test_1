@@ -10,3 +10,26 @@ pub fn sync_position(mut query: Query<(&Position, &mut Transform)>) {
         transform.translation.y = pos.y;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::boxes::component::Position;
+
+    #[test]
+    fn test_usage() {
+        let mut world = World::new();
+
+        world.spawn((Position::new(100.0, 200.0), Transform::default()));
+
+        let mut schedule = Schedule::default();
+        schedule.add_systems(sync_position);
+        schedule.run(&mut world);
+
+        let mut query = world.query::<&Transform>();
+        let transforms: Vec<_> = query.iter(&world).collect();
+        assert!(!transforms.is_empty());
+        assert_eq!(transforms[0].translation.x, 100.0);
+        assert_eq!(transforms[0].translation.y, 200.0);
+    }
+}

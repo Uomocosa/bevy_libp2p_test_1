@@ -29,10 +29,10 @@ To maintain a clean, navigable codebase, we follow a strict **"One Logic Unit Pe
     1. Create a subfolder with the same name as the Struct.
     2. Create individual files for each method inside that subfolder.
     3. The main Struct file's `impl` block will then act as a "router," calling these decomposed functions.
-- *Example:* `Player` struct in `Player.rs` might have a directory `Player/` containing `jump.rs` and `move.rs`.
 
 ## Universal Rust Code Style
 
+- **No Comments:** Do not write comments in the code. The code must be self-documenting through clear naming.
 - **Clarity over cleverness:** Write readable, maintainable code.
 - **Early returns:** Use `?` or `return` to reduce nesting.
 - **Indentation:** 4 spaces.
@@ -46,16 +46,18 @@ To maintain a clean, navigable codebase, we follow a strict **"One Logic Unit Pe
 - **Filename is THE EXACT same as the primary item:**
    - `StructName` → `StructName.rs`
    - `simple_function` → `simple_function.rs`
-- **STRICT CASE PRESERVATION:** Do NOT downcase filenames. If the struct is `PlayerInput`, the file is `PlayerInput.rs`. If the function is `apply_physics`, the file is `apply_physics.rs`.
+- **STRICT CASE PRESERVATION:** Do NOT downcase filenames.
 - Assume `#![allow(non_snake_case)]` is handled at the crate level.
 
 ## Universal Testing Philosophy: Mandatory `test_usage`
 
-Every logic file (Function or Struct) MUST contain a demonstration test.
-- **The `test_usage` rule:** At the bottom of every file, include a `#[cfg(test)]` module with a test named `test_usage`.
-- This test must act as a "living example," showing how to initialize the struct or call the function with realistic data.
+Every logic file MUST contain a `#[cfg(test)]` module with a single test named `test_usage`.
 
-**Example for a function file:**
+**CRITICAL TESTING RULES:**
+1. **Test the Primary Item:** The test MUST execute the specific function or struct method that the file is named after. Testing an arbitrary struct initialization instead of the file's primary logic is strictly forbidden.
+2. **Context Instantiation:** If the primary item requires an execution context (e.g., a Bevy `App`, a `tokio` runtime, a `libp2p` network state), you MUST construct a minimal, working version of that context inside the test to properly execute the logic. Do not mock the inputs so trivially that the logic is bypassed.
+
+**Example 1: Pure Function**
 ```rust
 pub fn add_velocity(pos: f32, vel: f32) -> f32 {
     pos + vel
@@ -68,7 +70,46 @@ mod tests {
     #[test]
     fn test_usage() {
         let result = add_velocity(10.0, 2.0);
-        assert_eq!(result, 12.0, "Velocity addition failed");
+        assert_eq!(result, 12.0);
+    }
+}
+```
+
+**Example 2: Context-Dependent Logic (e.g., Bevy System)**
+```rust
+pub fn detect_click(
+    mut query: Query<&mut ClickCounter>,
+    mouse_button_input: Res<ButtonInput<MouseButton>>,
+) {
+    if !mouse_button_input.just_pressed(MouseButton::Left) {
+        return;
+    }
+    for mut counter in &mut query {
+        counter.increment();
+        tracing::debug!(target: "clicker", "Clicked! New count: {}", counter.0);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bevy::prelude::*;
+
+    #[test]
+    fn test_usage() {
+        let mut app = App::new();
+        app.world_mut().spawn(ClickCounter(0));
+        
+        let mut mouse_input = ButtonInput::<MouseButton>::default();
+        mouse_input.press(MouseButton::Left);
+        app.insert_resource(mouse_input);
+        
+        app.add_systems(Update, detect_click);
+        app.update();
+        
+        let mut query = app.world_mut().query::<&ClickCounter>();
+        let counter = query.single(app.world());
+        assert_eq!(counter.0, 1);
     }
 }
 ```
