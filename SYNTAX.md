@@ -26,15 +26,51 @@ Items (files, functions, structs) inherently inherit the context of their parent
   - ✗ Wrong: `clickers::components::PlayerComponent` (Redundant "component")
   - ✓ Correct: `clickers::components::Player`
 
-## 4. Import Rules (Strict)
-To maintain readability, imports are handled strictly based on their type:
-- **Structs and Enums:** Import these directly so they are clear in the code.
-  - ✓ `use crate::boxes::component::Position;`
-- **System Functions:** Do NOT import the final function directly, as it loses context. Import the `system` module and call the function through it.
-  - ✗ `use crate::boxes::system::collect_input;`
-  - ✓ `use crate::boxes::system;` -> Called in code as `system::collect_input()`
+## 4. Module Exporting & Importing Rules (CRITICAL)
 
-## 5. P2P Separation
+Because of our Atomic File Structure (e.g., `detect_click.rs` contains `pub fn detect_click`), Rust will naturally create a redundant path: `system::detect_click::detect_click`. We avoid this by strictly flattening at the `mod.rs` level and importing at the parent level.
+
+### A. Exporting (Inside `mod.rs`)
+You MUST flatten single-function and single-struct files in their parent `mod.rs` using `pub use` to prevent stutter.
+```rust
+// Inside src/clicker/system/mod.rs
+pub mod detect_click;
+pub use detect_click::detect_click; // ✓ CORRECT: Flattens the path
+```
+
+### B. Importing (Inside Consumer Files)
+To maintain readability, consumer files must import items based on their type:
+
+- **Structs and Enums:** Import the exact item directly. 
+  - ✗ `use crate::clicker::component;` -> `component::Player`
+  - ✓ `use crate::clicker::component::Player;`
+- **Functions (Systems, Helpers, etc.):** Do NOT import the final function. Import its parent module and call the function through it.
+  - ✗ `use crate::clicker::system::detect_click;` (Loses context)
+  - ✓ `use crate::clicker::system;` -> Called in code as `system::detect_click()`
+
+## 5. Pure `mod.rs` Files (No Logic Allowed)
+A `mod.rs` file exists solely to build the module tree and flatten exports. 
+**Rule:** You must NEVER define structs, enums, functions, traits, or constants inside a `mod.rs` file. All logic must live in its own atomic file.
+
+- ✗ Wrong (`mod.rs`):
+  ```rust
+  pub mod detect_click;
+  
+  // NEVER do this:
+  pub fn tiny_helper() { ... } 
+  pub struct LocalConfig { ... }
+  ```
+- ✓ Correct (`mod.rs`):
+  ```rust
+  pub mod detect_click;
+  pub use detect_click::detect_click;
+  
+  pub mod tiny_helper;
+  pub use tiny_helper::tiny_helper;
+  ```
+
+
+## 6. P2P Separation
 P2P logic must remain entirely separated from the game logic. 
 - Path structure: `p2p::[module]::[Item].rs`
 - Valid examples: `p2p::Swarm`, `p2p::connect`
