@@ -10,7 +10,7 @@ pub fn handle_player_leave(
 ) {
     for event in events.read() {
         if let P2PEvent::PlayerLeave(peer_id) = event {
-            let peer_id = *peer_id;
+            let peer_id = peer_id.clone();
             for (entity, owner) in owner_query.iter() {
                 if owner.0 == peer_id {
                     commands.entity(entity).despawn();

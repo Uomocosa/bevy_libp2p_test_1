@@ -4,8 +4,8 @@ use crate::clicker::component::ClickCounter;
 use crate::clicker::component::Owner;
 use crate::p2p::handler::P2PState;
 
-pub fn update_counter(p2p_state: Res<P2PState>, query: Query<(&Owner, &ClickCounter, &mut Text)>) {
-    for (owner, counter, mut text) in &query {
+pub fn update_counter(p2p_state: Res<P2PState>, mut query: Query<(&Owner, &ClickCounter, &mut Text)>) {
+    for (owner, counter, mut text) in &mut query {
         let label = if owner.0 == p2p_state.local_peer_id {
             "You"
         } else {

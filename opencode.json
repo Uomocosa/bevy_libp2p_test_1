@@ -1,5 +1,8 @@
 {
     "$schema": "https://opencode.ai/config.json",
+    "compaction": {
+      "auto": true
+    },
     "permission": {
         "external_directory": {
           "~/.cargo/registry/**": "allow",
@@ -33,7 +36,25 @@
                     "git *": "allow",
                     "git commit *": "ask",
                     "git push *": "deny",
-                    "grep *": "allow"
+                    "grep *": "allow",
+                    "cargo build*": "allow",
+                    "cargo clippy*": "allow",
+                    "cargo fmt*": "allow",
+                    "cargo test *": "allow",
+                    "cargo nextest run*": "allow"
+                }
+            }
+        }
+    },
+    "provider": {
+        "opencode": {
+            "models": {
+                "opencode/big-pickle": {
+                    "name": "Big Pickle",
+                    "limit": {
+                        "context": 180000,
+                        "output": 16000
+                    }
                 }
             }
         }

@@ -14,8 +14,8 @@ pub fn handle_player_join(
 ) {
     for event in events.read() {
         if let P2PEvent::PlayerJoin(peer_id) = event {
-            let is_local = *peer_id == p2p_state.local_peer_id;
-            spawn_click_button(&mut commands, *peer_id, is_local);
+            let is_local = peer_id.clone() == p2p_state.local_peer_id;
+            spawn_click_button(&mut commands, peer_id.clone(), is_local);
         }
     }
 }

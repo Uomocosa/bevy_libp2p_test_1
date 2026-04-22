@@ -10,7 +10,7 @@ use crate::p2p::config::P2PEvent;
 pub fn handle_player_join(mut events: EventReader<P2PEvent>, mut commands: Commands) {
     for event in events.read() {
         if let P2PEvent::PlayerJoin(peer_id) = event {
-            spawn_remote_player(&mut commands, *peer_id);
+            spawn_remote_player(&mut commands, peer_id.clone());
         }
     }
 }
