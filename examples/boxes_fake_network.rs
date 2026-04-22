@@ -41,14 +41,12 @@ fn setup_game(mut commands: Commands) {
     ));
 
     commands.spawn((
-        TextBundle::from_section(
-            "Press P to simulate player join",
-            TextStyle {
-                font_size: 20.0,
-                color: Color::WHITE,
-                ..default()
-            },
-        ),
+        Text("Press P to simulate player join".to_string()),
+        TextFont {
+            font_size: 20.0,
+            ..default()
+        },
+        TextColor(Color::WHITE),
         Transform::from_xyz(0.0, 250.0, 0.0),
     ));
 }
