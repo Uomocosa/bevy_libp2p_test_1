@@ -6,7 +6,7 @@ use boxes::component::{InputBuffer, PlayerInput, Position, Velocity};
 fn main() {
     // cargo run --example boxes
     App::new()
-        .add_plugins(app::BevyP2PPlugin)
+        .add_plugins(app::BevyP2PPlugin::coop())
         .add_plugins(boxes::BoxesGamePlugin)
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {

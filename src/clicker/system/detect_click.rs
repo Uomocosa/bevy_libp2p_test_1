@@ -23,7 +23,7 @@ pub fn detect_click(
         return;
     };
 
-    let window_size = Vec2::new(window.width() as f32, window.height() as f32);
+    let window_size = Vec2::new(window.width(), window.height());
     let ndc = (cursor_pos / window_size) * 2.0 - Vec2::ONE;
     let world_pos = Vec3::new(ndc.x * 100.0, ndc.y * 100.0, 0.0);
 

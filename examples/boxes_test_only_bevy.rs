@@ -15,7 +15,7 @@ fn main() {
             }),
             ..default()
         }))
-        .add_plugins(app::BevyP2PPlugin)
+        .add_plugins(app::BevyP2PPlugin::coop())
         .add_systems(Startup, setup_game)
         .add_systems(Update, print_peer_info_system)
         .run();

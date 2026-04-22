@@ -21,7 +21,7 @@ fn main() {
             }),
             ..default()
         }))
-        .add_plugins(app::BevyP2PPlugin)
+        .add_plugins(app::BevyP2PPlugin::coop())
         .add_systems(Startup, setup_players)
         .add_systems(Update, player_movement_system)
         .run();

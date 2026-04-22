@@ -24,6 +24,7 @@ pub struct SwarmBehaviour {
     pub gossipsub: gossipsub::Behaviour,
 }
 
+#[allow(dead_code)]
 pub struct P2PSwarm {
     pub local_peer_id: PeerId,
     command_sender: mpsc::Sender<SwarmCommand>,
@@ -113,7 +114,7 @@ impl P2PSwarm {
             let swarm_for_stream = swarm.clone();
 
             let mut enable_manual_dial = enable_manual_dial;
-            let mut last_heartbeat = Instant::now();
+            let mut _last_heartbeat = Instant::now();
 
             loop {
                 let cmd = {
@@ -228,7 +229,7 @@ impl P2PSwarm {
                     }
                 }
 
-                last_heartbeat = Instant::now();
+_last_heartbeat = Instant::now();
                 std::thread::sleep(std::time::Duration::from_millis(heartbeat_interval_ms));
             }
         });

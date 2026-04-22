@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy::ecs::event::EventWriter;
 use tracing::{debug, info, warn};
 
 use crate::p2p::config::P2PEvent;
@@ -21,10 +20,11 @@ pub fn poll_network(
     mut remote_buffer: ResMut<RemoteInputBuffer>,
     mut network_state: ResMut<NetworkState>,
     mut p2p_state: ResMut<P2PState>,
-    mut events: EventWriter<P2PEvent>,
+    mut events: MessageWriter<P2PEvent>,
 ) {
-    let config = &swarm_state.config;
-    let can_accept = can_accept_player(p2p_state.connected_peers.len(), config);
+    let auto_accept = swarm_state.config.auto_accept_join;
+    let max_players = swarm_state.config.max_players;
+    let can_accept = can_accept_player(p2p_state.connected_peers.len(), &swarm_state.config);
 
     while let Ok(event) = swarm_state.event_receiver.try_recv() {
         match event {
@@ -32,7 +32,7 @@ pub fn poll_network(
                 info!("Peer discovered: {}", peer_id);
                 if !p2p_state.discovered_peers.contains(&peer_id) {
                     p2p_state.add_discovered_peer(peer_id);
-                    events.send(P2PEvent::DiscoveredPlayer(peer_id));
+                    events.write(P2PEvent::DiscoveredPlayer(peer_id));
                 }
                 if !network_state.discovered_peers.contains(&peer_id) {
                     network_state.discovered_peers.push(peer_id);
@@ -41,16 +41,16 @@ pub fn poll_network(
             SwarmEventType::PeerConnected(peer_id) => {
                 debug!("Peer connected: {}", peer_id);
                 if !p2p_state.connected_peers.contains(&peer_id) {
-                    if config.auto_accept_join && can_accept {
+if auto_accept && can_accept {
                         p2p_state.add_connected_peer(peer_id);
-                        events.send(P2PEvent::PlayerJoin(peer_id));
-                    } else if !config.auto_accept_join {
+                        events.write(P2PEvent::PlayerJoin(peer_id));
+} else if !auto_accept {
                         p2p_state.add_join_request(peer_id);
-                        events.send(P2PEvent::JoinRequest(peer_id));
+                        events.write(P2PEvent::JoinRequest(peer_id));
                     } else {
                         warn!(
                             "Max players ({:?}) reached, rejecting connection from {}",
-                            config.max_players, peer_id
+                            max_players, peer_id
                         );
                     }
                 }
@@ -62,7 +62,7 @@ pub fn poll_network(
                 debug!("Peer disconnected: {}", peer_id);
                 if p2p_state.connected_peers.contains(&peer_id) {
                     p2p_state.remove_connected_peer(peer_id);
-                    events.send(P2PEvent::PlayerLeave(peer_id));
+                    events.write(P2PEvent::PlayerLeave(peer_id));
                 }
                 if p2p_state.pending_join_requests.contains(&peer_id) {
                     p2p_state.remove_join_request(peer_id);
@@ -87,16 +87,16 @@ pub fn poll_network(
     let connected_peers = swarm_state.swarm.get_connected_peers();
     for peer in connected_peers {
         if !p2p_state.connected_peers.contains(&peer) {
-            if config.auto_accept_join && can_accept {
+            if auto_accept && can_accept {
                 p2p_state.add_connected_peer(peer);
-                events.send(P2PEvent::PlayerJoin(peer));
-            } else if !config.auto_accept_join {
+                events.write(P2PEvent::PlayerJoin(peer));
+            } else if !auto_accept {
                 p2p_state.add_join_request(peer);
-                events.send(P2PEvent::JoinRequest(peer));
+                events.write(P2PEvent::JoinRequest(peer));
             } else {
                 warn!(
                     "Max players ({:?}) reached, not accepting peer {}",
-                    config.max_players, peer
+                    max_players, peer
                 );
             }
         }

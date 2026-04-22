@@ -5,7 +5,7 @@ use clicker::component::{ClickCounter, ClickTarget};
 fn main() {
     // cargo run --example clicker
     App::new()
-        .add_plugins(app::BevyP2PPlugin)
+        .add_plugins(app::BevyP2PPlugin::coop())
         .add_plugins(clicker::ClickerGamePlugin)
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {

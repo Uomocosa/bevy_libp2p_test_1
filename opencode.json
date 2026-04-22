@@ -26,25 +26,6 @@
             "*.env.example": "allow"
         }
     },
-    "agent": {
-        "build": {
-            "permission": {
-                "bash": {
-                    "*": "ask",
-                    "rm *": "ask",
-                    "git *": "allow",
-                    "git commit *": "ask",
-                    "git push *": "deny",
-                    "grep *": "allow",
-                    "cargo build*": "allow",
-                    "cargo clippy*": "allow",
-                    "cargo fmt*": "allow",
-                    "cargo test *": "allow",
-                    "cargo nextest run*": "allow"
-                }
-            }
-        }
-    },
     "provider": {
         "opencode": {
             "models": {

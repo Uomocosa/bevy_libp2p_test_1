@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy::ecs::event::EventReader;
 use libp2p::PeerId;
 
 use crate::boxes::component::Player;
@@ -8,10 +7,10 @@ use crate::boxes::component::Position;
 use crate::boxes::component::Velocity;
 use crate::p2p::config::P2PEvent;
 
-pub fn handle_player_join(mut events: EventReader<P2PEvent>, mut commands: Commands) {
+pub fn handle_player_join(mut events: MessageReader<P2PEvent>, mut commands: Commands) {
     for event in events.read() {
         if let P2PEvent::PlayerJoin(peer_id) = event {
-            spawn_remote_player(&mut commands, peer_id.clone());
+            spawn_remote_player(&mut commands, *peer_id);
         }
     }
 }
@@ -43,10 +42,14 @@ mod tests {
         let mut world = World::new();
         let peer_id = PeerId::random();
 
-        let mut commands = Commands::new(&mut CommandQueue::default(), &mut world);
-        spawn_remote_player(&mut commands, peer_id);
+        {
+            let mut commands = world.commands();
+            spawn_remote_player(&mut commands, peer_id);
+        }
+        world.flush();
 
-        let entity = world.entities().clone().iter().next();
-        assert!(entity.is_some());
+        let mut query = world.query::<&Player>();
+        let player = query.single(&world).unwrap();
+        assert!(player.peer_id == peer_id);
     }
 }

@@ -1,19 +1,17 @@
 use bevy::prelude::*;
-use bevy::ecs::event::EventReader;
 
 use crate::boxes::component::Player;
 use crate::p2p::config::P2PEvent;
 
 pub fn handle_player_leave(
-    mut events: EventReader<P2PEvent>,
+    mut events: MessageReader<P2PEvent>,
     mut commands: Commands,
     player_query: Query<(Entity, &Player)>,
 ) {
     for event in events.read() {
         if let P2PEvent::PlayerLeave(peer_id) = event {
-            let peer_id = peer_id.clone();
             for (entity, player) in player_query.iter() {
-                if player.peer_id == peer_id {
+                if player.peer_id == *peer_id {
                     commands.entity(entity).despawn();
                 }
             }
