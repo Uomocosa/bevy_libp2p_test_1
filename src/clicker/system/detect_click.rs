@@ -55,7 +55,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_detect_click_no_input() {
+    fn test_usage() {
         let mut world = World::new();
         let mouse_input = ButtonInput::<MouseButton>::default();
         world.insert_resource(mouse_input);
