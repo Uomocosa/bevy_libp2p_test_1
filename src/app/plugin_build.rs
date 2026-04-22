@@ -8,7 +8,8 @@ use crate::sync::tick::Tick;
 
 impl Plugin for BevyP2PPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(P2PPlugin)
+        let p2p_plugin = P2PPlugin::new(self.config().clone());
+        app.add_plugins(p2p_plugin)
             .init_resource::<Tick>()
             .init_resource::<NetworkState>()
             .init_resource::<RemoteInputBuffer>()

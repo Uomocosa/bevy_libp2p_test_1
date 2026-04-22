@@ -1,3 +1,4 @@
+use bevy::prelude::Event;
 use libp2p::PeerId;
 
 #[derive(Clone, Debug)]
@@ -100,7 +101,7 @@ impl P2PConfig {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Event)]
 pub enum P2PEvent {
     DiscoveredPlayer(PeerId),
     JoinRequest(PeerId),

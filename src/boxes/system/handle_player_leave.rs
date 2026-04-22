@@ -10,8 +10,9 @@ pub fn handle_player_leave(
 ) {
     for event in events.read() {
         if let P2PEvent::PlayerLeave(peer_id) = event {
+            let peer_id = *peer_id;
             for (entity, player) in player_query.iter() {
-                if player.peer_id == *peer_id {
+                if player.peer_id == peer_id {
                     commands.entity(entity).despawn();
                 }
             }

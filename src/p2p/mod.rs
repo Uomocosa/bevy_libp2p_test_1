@@ -12,7 +12,7 @@ pub mod swarm;
 
 pub use config::P2PConfig;
 pub use config::P2PEvent;
-pub use fake_network::FakeNetwork;
+pub use fake_network::{FakeNetwork, trigger_fake_player_join};
 pub use handler::{OnDiscoveredPlayer, OnJoinRequest, OnNetworkMessage, OnPlayerJoin, OnPlayerLeave, P2PState};
 pub use handle_incoming_message::handle_incoming_message;
 pub use plugin::{P2PPlugin, SwarmState};

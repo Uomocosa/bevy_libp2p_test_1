@@ -32,9 +32,9 @@ fn spawn_click_button(commands: &mut Commands, peer_id: PeerId, is_local: bool) 
             TextStyle {
                 font_size: 32.0,
                 color: if is_local {
-                    Color::rgb(0.0, 1.0, 0.0)
+                    Color::srgb(0.0, 1.0, 0.0)
                 } else {
-                    Color::rgb(1.0, 0.0, 0.0)
+                    Color::srgb(1.0, 0.0, 0.0)
                 },
                 ..default()
             },
@@ -48,12 +48,14 @@ mod tests {
 
     #[test]
     fn test_spawn_click_button_command() {
-        let mut commands = Commands::new_single();
+        let mut world = World::new();
         let peer_id = PeerId::random();
 
+        let mut commands = Commands::new(&mut world);
         spawn_click_button(&mut commands, peer_id, true);
+        commands.flush();
 
-        let entity = commands.into_iter().next();
+        let entity = world.iter_entities().next();
         assert!(entity.is_some());
     }
 }

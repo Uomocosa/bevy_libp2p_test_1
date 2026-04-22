@@ -2,6 +2,7 @@ use futures::StreamExt;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::sync::{Arc, Mutex};
+use std::time::Instant;
 use tokio::sync::mpsc;
 use tracing::{debug, info, warn};
 
@@ -11,6 +12,7 @@ use libp2p::mdns::tokio::Behaviour as Mdns;
 use libp2p::swarm::{Config as SwarmConfig, NetworkBehaviour, Swarm};
 use libp2p::{identity, noise, tcp, yamux, Multiaddr, PeerId, Transport};
 
+use crate::p2p::config::P2PConfig;
 use crate::p2p::protocol::NetworkMessage;
 
 pub const GAME_TOPIC_STR: &str = "bevy_p2p_game";
@@ -25,16 +27,18 @@ pub struct SwarmBehaviour {
 pub struct P2PSwarm {
     pub local_peer_id: PeerId,
     command_sender: mpsc::Sender<SwarmCommand>,
+    config: P2PConfig,
 }
 
 pub enum SwarmCommand {
     Publish(IdentTopic, NetworkMessage),
     Dial(Multiaddr),
     GetPeers(mpsc::Sender<Vec<PeerId>>),
+    SetEnableManualDial(bool),
 }
 
 impl P2PSwarm {
-    pub fn new() -> Result<(Self, mpsc::Receiver<SwarmEventType>), Box<dyn std::error::Error>> {
+    pub fn new(config: P2PConfig) -> Result<(Self, mpsc::Receiver<SwarmEventType>), Box<dyn std::error::Error>> {
         let (event_tx, event_rx) = mpsc::channel(100);
         let (command_sender, command_receiver) = mpsc::channel(100);
 
@@ -42,6 +46,10 @@ impl P2PSwarm {
         let local_peer_id = PeerId::from(&local_key.public());
 
         info!("Local peer ID: {}", local_peer_id);
+
+        let enable_mdns = config.enable_mdns;
+        let enable_manual_dial = config.enable_manual_dial;
+        let heartbeat_interval_ms = config.heartbeat_interval_ms;
 
         std::thread::spawn(move || {
             info!("Swarm thread started, initializing networking");
@@ -51,13 +59,19 @@ impl P2PSwarm {
                 .build()
                 .unwrap();
 
-            let mdns = match Mdns::new(libp2p::mdns::Config::default(), local_peer_id) {
-                Ok(m) => m,
-                Err(e) => {
-                    warn!("mDNS disabled (no network interface?): {}", e);
-                    Mdns::new(libp2p::mdns::Config::default(), local_peer_id)
-                        .expect("mDNS disabled failed even without network")
+            let mdns = if enable_mdns {
+                match Mdns::new(libp2p::mdns::Config::default(), local_peer_id) {
+                    Ok(m) => m,
+                    Err(e) => {
+                        warn!("mDNS disabled (no network interface?): {}", e);
+                        Mdns::new(libp2p::mdns::Config::default(), local_peer_id)
+                            .expect("mDNS disabled failed even without network")
+                    }
                 }
+            } else {
+                warn!("mDNS disabled by config");
+                Mdns::new(libp2p::mdns::Config::default(), local_peer_id)
+                    .expect("mDNS new should not fail")
             };
 
             let transport = tcp::tokio::Transport::new(tcp::Config::default())
@@ -98,6 +112,9 @@ impl P2PSwarm {
             let command_receiver = Arc::new(Mutex::new(command_receiver));
             let swarm_for_stream = swarm.clone();
 
+            let mut enable_manual_dial = enable_manual_dial;
+            let mut last_heartbeat = Instant::now();
+
             loop {
                 let cmd = {
                     let mut receiver = command_receiver.lock().unwrap();
@@ -114,8 +131,12 @@ impl P2PSwarm {
                             }
                         }
                         SwarmCommand::Dial(addr) => {
-                            if let Err(e) = swarm.dial(addr) {
-                                warn!("Dial failed: {}", e);
+                            if enable_manual_dial {
+                                if let Err(e) = swarm.dial(addr) {
+                                    warn!("Dial failed: {}", e);
+                                }
+                            } else {
+                                warn!("Manual dial disabled by config");
                             }
                         }
                         SwarmCommand::GetPeers(sender) => {
@@ -124,6 +145,10 @@ impl P2PSwarm {
                             rt.block_on(async {
                                 sender.send(peers).await.ok();
                             });
+                        }
+                        SwarmCommand::SetEnableManualDial(enabled) => {
+                            enable_manual_dial = enabled;
+                            debug!("Manual dial set to: {}", enabled);
                         }
                     }
                 }
@@ -203,7 +228,8 @@ impl P2PSwarm {
                     }
                 }
 
-                std::thread::sleep(std::time::Duration::from_millis(1));
+                last_heartbeat = Instant::now();
+                std::thread::sleep(std::time::Duration::from_millis(heartbeat_interval_ms));
             }
         });
 
@@ -211,6 +237,7 @@ impl P2PSwarm {
             Self {
                 local_peer_id,
                 command_sender,
+                config,
             },
             event_rx,
         ))
@@ -219,6 +246,12 @@ impl P2PSwarm {
     pub fn publish(&mut self, topic: IdentTopic, message: NetworkMessage) {
         self.command_sender
             .try_send(SwarmCommand::Publish(topic, message))
+            .ok();
+    }
+
+    pub fn set_enable_manual_dial(&mut self, enabled: bool) {
+        self.command_sender
+            .try_send(SwarmCommand::SetEnableManualDial(enabled))
             .ok();
     }
 
@@ -252,10 +285,12 @@ mod tests {
     use std::time::Instant;
 
     use super::{P2PSwarm, SwarmEventType};
+    use crate::p2p::config::P2PConfig;
 
     #[test]
     fn test_p2p_swarm_initializes() {
-        let result = P2PSwarm::new();
+        let config = P2PConfig::default();
+        let result = P2PSwarm::new(config);
 
         assert!(result.is_ok(), "Swarm should initialize without error");
 
@@ -274,7 +309,8 @@ mod tests {
 
     #[test]
     fn test_get_connected_peers() {
-        let (mut swarm, _rx) = P2PSwarm::new().expect("Failed to create swarm");
+        let config = P2PConfig::default();
+        let (mut swarm, _rx) = P2PSwarm::new(config).expect("Failed to create swarm");
 
         let peers = swarm.get_connected_peers();
 
@@ -285,7 +321,8 @@ mod tests {
 
     #[test]
     fn test_get_discovered_peers() {
-        let (_swarm, _rx) = P2PSwarm::new().expect("Failed to create swarm");
+        let config = P2PConfig::default();
+        let (_swarm, _rx) = P2PSwarm::new(config).expect("Failed to create swarm");
 
         let peers: Vec<PeerId> = Vec::new();
 
@@ -293,10 +330,27 @@ mod tests {
     }
 
     #[test]
+    fn test_mdns_disabled_by_config() {
+        let config = P2PConfig::default().with_mdns(false);
+        let result = P2PSwarm::new(config);
+
+        assert!(result.is_ok(), "Swarm should initialize even with mDNS disabled");
+    }
+
+    #[test]
+    fn test_manual_dial_disabled_by_config() {
+        let config = P2PConfig::default().with_manual_dial(false);
+        let result = P2PSwarm::new(config);
+
+        assert!(result.is_ok(), "Swarm should initialize even with manual dial disabled");
+    }
+
+    #[test]
     #[ignore = "mDNS requires real network/multicast between separate machines on same LAN"]
     fn test_mdns_bidirectional_discovery() {
-        let (swarm1, mut rx1) = P2PSwarm::new().expect("Failed to create swarm1");
-        let (swarm2, mut rx2) = P2PSwarm::new().expect("Failed to create swarm2");
+        let config = P2PConfig::default();
+        let (swarm1, mut rx1) = P2PSwarm::new(config.clone()).expect("Failed to create swarm1");
+        let (swarm2, mut rx2) = P2PSwarm::new(config).expect("Failed to create swarm2");
 
         let peer1_id = swarm1.local_peer_id;
         let peer2_id = swarm2.local_peer_id;

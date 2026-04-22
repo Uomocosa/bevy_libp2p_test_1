@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use tracing::info;
 
-use crate::p2p::config::P2PConfig;
 use crate::p2p::plugin::P2PPlugin;
 use crate::p2p::plugin::SwarmState;
 use crate::p2p::swarm::P2PSwarm;
@@ -12,7 +11,9 @@ use crate::p2p::handler::P2PState;
 
 impl Plugin for P2PPlugin {
     fn build(&self, app: &mut App) {
-        let (swarm, event_receiver) = match P2PSwarm::new() {
+        let config = self.config.clone();
+
+        let (swarm, event_receiver) = match P2PSwarm::new(config.clone()) {
             Ok((s, r)) => (s, r),
             Err(e) => {
                 panic!("Failed to create P2P swarm: {}", e);
@@ -23,13 +24,12 @@ impl Plugin for P2PPlugin {
 
         info!("P2P Plugin initialized with peer ID: {}", local_peer_id);
 
-        let config = P2PConfig::default();
-
         app.init_resource::<NetworkState>()
             .insert_resource(SwarmState {
                 swarm,
                 local_peer_id,
                 event_receiver,
+                config: config.clone(),
             })
             .insert_resource(P2PState::new(config, local_peer_id))
             .add_event::<crate::p2p::config::P2PEvent>()
