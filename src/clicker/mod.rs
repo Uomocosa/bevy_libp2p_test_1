@@ -8,16 +8,13 @@ pub use system::update_counter;
 
 use bevy::prelude::*;
 
-use crate::p2p::config::P2PEvent;
-
 pub struct ClickerGamePlugin;
 
 impl Plugin for ClickerGamePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, (system::detect_click, system::update_counter))
             .add_systems(Update, system::handle_player_join)
-            .add_systems(Update, system::handle_player_leave)
-            .add_event::<P2PEvent>();
+            .add_systems(Update, system::handle_player_leave);
     }
 }
 

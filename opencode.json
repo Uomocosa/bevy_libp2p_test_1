@@ -9,7 +9,6 @@
           "~/.cargo/git/**": "allow"
         },
         "bash": {
-            "*": "ask",
             "git *": "allow",
             "git commit *": "deny",
             "git push *": "deny",

@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::ecs::event::EventReader;
 use libp2p::PeerId;
 
 use crate::clicker::component::ClickCounter;
@@ -27,7 +28,7 @@ fn spawn_click_button(commands: &mut Commands, peer_id: PeerId, is_local: bool) 
         Owner(peer_id),
         ClickCounter(0),
         ClickTarget,
-        TextBundle::from_section(
+        Text::from_section(
             format!("{}: 0", label),
             TextStyle {
                 font_size: 32.0,
@@ -51,11 +52,10 @@ mod tests {
         let mut world = World::new();
         let peer_id = PeerId::random();
 
-        let mut commands = Commands::new(&mut world);
+        let mut commands = Commands::new(&mut CommandQueue::default(), &mut world);
         spawn_click_button(&mut commands, peer_id, true);
-        commands.flush();
 
-        let entity = world.iter_entities().next();
+        let entity = world.entities().clone().iter().next();
         assert!(entity.is_some());
     }
 }

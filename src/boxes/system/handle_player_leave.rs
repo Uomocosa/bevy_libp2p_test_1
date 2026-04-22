@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::ecs::event::EventReader;
 
 use crate::boxes::component::Player;
 use crate::p2p::config::P2PEvent;
@@ -27,7 +28,7 @@ mod tests {
     #[test]
     fn test_handle_player_leave_empty() {
         let mut world = World::new();
-        let query = world.query::<(Entity, &Player)>();
+        let mut query = world.query::<(Entity, &Player)>();
 
         assert!(query.iter(&world).next().is_none());
     }

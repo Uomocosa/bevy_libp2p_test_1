@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::ecs::event::EventWriter;
 use tracing::{debug, info, warn};
 
 use crate::p2p::config::P2PEvent;

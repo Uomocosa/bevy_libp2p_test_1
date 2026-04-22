@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::ecs::event::EventReader;
 use libp2p::PeerId;
 
 use crate::boxes::component::Player;
@@ -42,11 +43,10 @@ mod tests {
         let mut world = World::new();
         let peer_id = PeerId::random();
 
-        let mut commands = Commands::new(&mut world);
+        let mut commands = Commands::new(&mut CommandQueue::default(), &mut world);
         spawn_remote_player(&mut commands, peer_id);
-        commands.flush();
 
-        let entity = world.iter_entities().next();
+        let entity = world.entities().clone().iter().next();
         assert!(entity.is_some());
     }
 }

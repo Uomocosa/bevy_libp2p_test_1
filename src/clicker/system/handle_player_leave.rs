@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::ecs::event::EventReader;
 
 use crate::clicker::component::Owner;
 use crate::p2p::config::P2PEvent;
@@ -27,7 +28,7 @@ mod tests {
     #[test]
     fn test_handle_player_leave_empty() {
         let mut world = World::new();
-        let query = world.query::<(Entity, &Owner)>();
+        let mut query = world.query::<(Entity, &Owner)>();
 
         assert!(query.iter(&world).next().is_none());
     }

@@ -1,8 +1,10 @@
 use bevy::prelude::*;
+use bevy::ecs::event::EventWriter;
 use libp2p::PeerId;
 
-use crate::p2p::config::{P2PConfig, P2PEvent};
+use crate::p2p::config::P2PEvent;
 use crate::p2p::handler::P2PState;
+use crate::p2p::config::P2PConfig;
 
 #[derive(Resource, Default)]
 pub struct FakeNetwork {

@@ -15,6 +15,15 @@ pub fn handle_incoming_message(
             debug!("Received player input from {} for tick {}", peer_id, tick);
             remote_buffer.push(peer_id, tick, input);
         }
+        NetworkMessage::JoinRequest { peer_id: id } => {
+            tracing::info!("Received join request from: {}", id);
+        }
+        NetworkMessage::Accept { peer_id: id } => {
+            tracing::info!("Join accepted for: {}", id);
+        }
+        NetworkMessage::Reject { peer_id: id } => {
+            tracing::info!("Join rejected for: {}", id);
+        }
         NetworkMessage::PlayerJoin { peer_id: id } => {
             tracing::info!("Player joined: {}", id);
         }
