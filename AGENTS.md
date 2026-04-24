@@ -121,7 +121,7 @@ Verify changes with:
 cargo build --all-targets
 cargo clippy -- -D warnings
 cargo fmt -- --check
-cargo nextest run --all-targets
+cargo test --all-targets
 ```
 
 ## Git Workflow

@@ -1,26 +1,10 @@
 pub mod component;
+pub mod plugin;
 pub mod system;
 
-use bevy::prelude::*;
-
-pub struct BoxesGamePlugin;
-
-impl Plugin for BoxesGamePlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(FixedUpdate, system::collect)
-            .add_systems(FixedUpdate, system::character_controller)
-            .add_systems(FixedUpdate, system::sync_position)
-            .add_systems(Update, system::handle_player_join)
-            .add_systems(Update, system::handle_player_leave);
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_usage() {
-        let _plugin = BoxesGamePlugin;
-    }
-}
+pub use component::{InputBuffer, Player, PlayerInput, Position, Velocity};
+pub use plugin::BoxesGamePlugin;
+pub use system::{
+    apply_input_to_velocity, character_controller, collect, collect_input, handle_player_join,
+    handle_player_leave, sync_position,
+};
