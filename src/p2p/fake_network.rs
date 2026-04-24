@@ -136,16 +136,15 @@ mod tests {
 
         keyboard.press(KeyCode::KeyP);
 
-        let mut world = World::new();
-        world.insert_resource(fake);
-        world.insert_resource(p2p_state);
-        world.insert_resource(keyboard);
+        let mut app = App::new();
+        app.insert_resource(fake);
+        app.insert_resource(p2p_state);
+        app.insert_resource(keyboard);
+        app.add_message::<P2PEvent>();
+        app.add_systems(Update, trigger_fake_player_join);
+        app.update();
 
-        let mut schedule = Schedule::default();
-        schedule.add_systems(trigger_fake_player_join);
-        schedule.run(&mut world);
-
-        let p2p_state = world.resource::<P2PState>();
+        let p2p_state = app.world().resource::<P2PState>();
         assert!(
             !p2p_state.connected_peers.is_empty(),
             "Should have connected peer after trigger"

@@ -11,7 +11,7 @@ pub fn detect_click(
     windows: Query<&Window>,
     p2p_state: Res<P2PState>,
 ) {
-    if !mouse_button_input.just_pressed(MouseButton::Left) {
+    if !mouse_button_input.pressed(MouseButton::Left) {
         return;
     }
 
@@ -48,15 +48,47 @@ pub fn detect_click(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy::ecs::schedule::Schedule;
+    use bevy::input::mouse::MouseButton;
+    use bevy::window::WindowResolution;
+    use libp2p::PeerId;
+
+    use crate::p2p::config::P2PConfig;
 
     #[test]
     fn test_usage() {
         let mut world = World::new();
-        let mouse_input = ButtonInput::<MouseButton>::default();
+
+        let local_peer = PeerId::random();
+        world.insert_resource(P2PState {
+            config: P2PConfig::default(),
+            local_peer_id: local_peer,
+            connected_peers: Vec::new(),
+            discovered_peers: Vec::new(),
+            pending_join_requests: Vec::new(),
+        });
+
+        let mut window = Window::default();
+        window.resolution = WindowResolution::new(200, 200);
+        window.set_cursor_position(Some(Vec2::new(100.0, 100.0)));
+        world.spawn(window);
+
+        world.spawn((
+            Owner(local_peer),
+            ClickCounter(0),
+            GlobalTransform::from_translation(Vec3::new(0.0, 0.0, 0.0)),
+        ));
+
+        let mut mouse_input = ButtonInput::<MouseButton>::default();
+        mouse_input.press(MouseButton::Left);
         world.insert_resource(mouse_input);
 
         let mut schedule = Schedule::default();
         schedule.add_systems(detect_click);
         schedule.run(&mut world);
+
+        let mut query = world.query::<&ClickCounter>();
+        let counter = query.single(&world).unwrap();
+        assert_eq!(counter.0, 1, "Counter should increment when clicking on own target");
     }
 }
